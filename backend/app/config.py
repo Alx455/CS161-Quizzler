@@ -20,7 +20,7 @@ class Config:
         raise ValueError("Missing required database environment variables")
 
     # build connection string for SQLAlchemy to connect to database
-    SQLALCHEMY_DATABASE_URI = f"mysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
     # disable event modification tracking for optimization
     SQLALCHEMY_TRACK_MODIFICATIONS = False
