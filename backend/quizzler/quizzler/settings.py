@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     # Custom apps below
     'authentication',
+    'games',
 ]
 
 # REST and JWT imports
