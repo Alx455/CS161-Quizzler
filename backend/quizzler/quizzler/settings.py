@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     # Custom apps below
     'authentication',
     'games',
+    'live_game_session',
 ]
 
 # REST and JWT imports
