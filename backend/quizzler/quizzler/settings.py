@@ -43,7 +43,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Custom apps below
+    'authentication',
 ]
+
+# REST and JWT imports
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=3),
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -90,6 +103,8 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT', '3306'),  # Default MySQL port 3306
     }
 }
+AUTH_USER_MODEL = 'authentication.CustomUser'
+
 
 
 # Password validation
