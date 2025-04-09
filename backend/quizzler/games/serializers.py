@@ -16,6 +16,13 @@ class QuestionSerializer(serializers.ModelSerializer):
         model = Question
         fields = ['question_text', 'choices']
 
+class GameSerializer(serializers.ModelSerializer):
+    questions = QuestionSerializer(many=True)
+
+    class Meta:
+        model = Game
+        fields = ['id', 'title', 'is_public', 'questions']
+
 
 class CreateGameSerializer(serializers.ModelSerializer):
     questions = QuestionSerializer(many=True)
@@ -64,3 +71,26 @@ class CreateGameSerializer(serializers.ModelSerializer):
                     Choice.objects.create(question=question, **choice_data)
 
         return game
+    
+
+
+class GameUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Game
+        fields = ['title', 'is_public']
+
+
+class QuestionUpdateSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+
+    class Meta:
+        model = Question
+        fields = ['id', 'question_text']
+
+
+class ChoiceUpdateSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+
+    class Meta:
+        model = Choice
+        fields = ['id', 'choice_text', 'is_correct']
