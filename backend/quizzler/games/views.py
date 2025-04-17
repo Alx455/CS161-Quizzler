@@ -8,9 +8,10 @@ from .serializers import CreateGameSerializer, GameUpdateSerializer, QuestionUpd
 from .models import Game, Question, Choice
 
 class CreateGameView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated] #only users that are logged in can access..
 
     def post(self, request):
+      # 
         serializer = CreateGameSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             game = serializer.save()

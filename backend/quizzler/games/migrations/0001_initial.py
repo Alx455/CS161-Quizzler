@@ -5,15 +5,20 @@ import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
 
+#imports for validation tools, deletion behavior, base class for migrations and models and settings
 
+#migration class
 class Migration(migrations.Migration):
 
+    #first migration for application
     initial = True
 
+    #makes sure game owner is created properly
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
+    #new model named game is defined here
     operations = [
         migrations.CreateModel(
             name='Game',
