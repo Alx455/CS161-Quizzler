@@ -1,4 +1,5 @@
 // src/pages/Login.jsx
+import { useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import Layout from "../components/layout/Layout";
@@ -9,6 +10,9 @@ const Login = () => {
     email: "",
     password: "",
   });
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -18,9 +22,36 @@ const Login = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // We'll implement actual login functionality later
+    const requestOptions = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: formData.email,
+        password: formData.password,
+      }),
+    };
+  
+    try {
+      const response = await fetch("http://127.0.0.1:8000/authentication/login/", requestOptions);
+      const data = await response.json();
+  
+      if (response.status === 401 || response.status === 400) {
+        setError("Invalid email or password.");
+      } else if (response.ok) {
+        localStorage.setItem("access_token", data.access);
+        localStorage.setItem("refresh_token", data.refresh);
+  
+        setError(null);
+        navigate("/dashboard");
+      } else {
+        setError("Login failed.");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong.");
+    }
     console.log("Login form submitted:", formData);
   };
 
