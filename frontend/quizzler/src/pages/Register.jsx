@@ -1,4 +1,5 @@
 // src/pages/Register.jsx
+import { useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import Layout from "../components/layout/Layout";
@@ -11,6 +12,9 @@ const Register = () => {
     password: "",
     confirmPassword: "",
   });
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -20,9 +24,48 @@ const Register = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // We'll implement actual registration functionality later
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+  
+    const requestOptions = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: formData.email,
+        password: formData.password,
+        username: formData.username,
+      }),
+    };
+  
+    try {
+      const response = await fetch("http://127.0.0.1:8000/authentication/register/", requestOptions);
+      const data = await response.json();
+  
+      if (response.status === 409) {
+        setError(data.detail || "Username already exists.");
+      } else if (response.status === 400) {
+        setError("This email is already associated with another account.");
+      } else if (response.ok) {
+        // store tokens if using JWT
+        localStorage.setItem("access_token", data.access);
+        localStorage.setItem("refresh_token", data.refresh);
+  
+        setSuccess("Registration successful!");
+        setError(null);
+  
+        // redirect
+        navigate('/dashboard');
+      } else {
+        setError("Registration failed.");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong.");
+    }
     console.log("Register form submitted:", formData);
   };
 
