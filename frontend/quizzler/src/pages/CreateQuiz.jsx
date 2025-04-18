@@ -1,4 +1,5 @@
 // src/pages/CreateQuiz.jsx
+import { useNavigate } from "react-router-dom";
 import React, { useState } from 'react';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
@@ -9,6 +10,8 @@ const CreateQuiz = () => {
   const [questions, setQuestions] = useState([
     { question: '', options: ['', '', '', ''], answer: 0 },
   ]);
+
+  const navigate = useNavigate();
 
   const handleAddQuestion = () => {
     setQuestions([
@@ -33,10 +36,43 @@ const CreateQuiz = () => {
     setQuestions(updated);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log({ title, description, questions });
-    // TODO: Send this to backend
+    const payload = {
+      title,
+      description,
+      is_public: false, // Potentially make a toggle button for this later
+      questions: questions.map((q) => ({
+        question_text: q.question,
+        choices: q.options.map((option, i) => ({
+          choice_text: option,
+          is_correct: i === q.answer,
+        })),
+      })),
+    };
+  
+    try {
+      const response = await fetch('http://127.0.0.1:8000/games/create-game/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      const data = await response.json();
+      if (response.ok) {
+        console.log('Game created with ID:', data.game_id);
+        // Potentially display success message before navigating
+        navigate('/dashboard');
+      } else {
+        console.error('Error creating game:', data);
+      }
+    } catch (error) {
+      console.error('Request failed:', error);
+    }
   };
 
   return (
