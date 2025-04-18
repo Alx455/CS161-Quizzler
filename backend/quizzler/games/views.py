@@ -21,6 +21,7 @@ class CreateGameView(APIView):
 JSON body to create game is expected to be formatted as a nested structure such as the one below
 {
   "title": "US Presidents Quiz",
+  "description": "This is a quiz about presidents",
   "is_public": true,
   "questions": [
     {
