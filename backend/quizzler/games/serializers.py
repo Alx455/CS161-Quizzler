@@ -21,7 +21,9 @@ class GameSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Game
-        fields = ['id', 'title', 'is_public', 'questions']
+        fields = ['id', 'title', 'description', 'is_public', 'questions']
+
+
 
 
 class CreateGameSerializer(serializers.ModelSerializer):
@@ -29,7 +31,7 @@ class CreateGameSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Game
-        fields = ['title', 'is_public', 'questions']
+        fields = ['title', 'description', 'is_public', 'questions']
 
     def validate_questions(self, questions):
         if not questions or len(questions) < 1:
@@ -77,7 +79,7 @@ class CreateGameSerializer(serializers.ModelSerializer):
 class GameUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Game
-        fields = ['title', 'is_public']
+        fields = ['title', 'description', 'is_public']
 
 
 class QuestionUpdateSerializer(serializers.ModelSerializer):

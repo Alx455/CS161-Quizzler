@@ -7,7 +7,8 @@ from django.core.validators import MinLengthValidator, MaxLengthValidator
 #table definition for storing metadata, owner and visibility
 class Game(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='games')
-    title = models.CharField(max_length=255, validators=[MinLengthValidator(1), MaxLengthValidator(255)])
+    title = models.CharField(max_length=255, blank=True, default='', validators=[MinLengthValidator(1), MaxLengthValidator(255)])
+    description = models.CharField(max_length=5000, validators=[MinLengthValidator(1), MaxLengthValidator(5000)])
     is_public = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
