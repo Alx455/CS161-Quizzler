@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 
-from .serializers import CreateGameSerializer, GameUpdateSerializer, QuestionUpdateSerializer, ChoiceUpdateSerializer
+from .serializers import CreateGameSerializer, GameUpdateSerializer, QuestionUpdateSerializer, ChoiceUpdateSerializer, GameSerializer
 from .models import Game, Question, Choice
 
 class CreateGameView(APIView):
@@ -132,6 +132,16 @@ class UpdateGameView(APIView):
 }
 
 '''
+
+class RetrieveUserGamesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # set of games that whose owner field is the current users id
+        games = Game.objects.filter(owner=request.user)
+        serializer = GameSerializer(games, many=True)
+        return Response(serializer.data)
+
 
 
 class RetrieveGameView(APIView):
