@@ -141,6 +141,21 @@ class RetrieveUserGamesView(APIView):
         games = Game.objects.filter(owner=request.user)
         serializer = GameSerializer(games, many=True)
         return Response(serializer.data)
+    
+class DeleteGameView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, game_id):
+        try:
+            game = Game.objects.get(id=game_id)
+        except Game.DoesNotExist:
+            return Response({'error': 'Game not found'}, status=status.HTTP_404_NOT_FOUND)
+        # Ensure only the owner can deletethe quiz
+        if game.owner != request.user:
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
+        # Delete game from DB
+        game.delete()
+        return Response({'message': 'Game deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
 
 
