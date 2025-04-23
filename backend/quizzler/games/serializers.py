@@ -6,7 +6,7 @@ from django.db import transaction
 class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Choice
-        fields = ['choice_text', 'is_correct']
+        fields = ['id', 'choice_text', 'is_correct']
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -14,7 +14,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Question
-        fields = ['question_text', 'choices']
+        fields = ['id', 'question_text', 'choices']
 
 class GameSerializer(serializers.ModelSerializer):
     questions = QuestionSerializer(many=True)
@@ -56,8 +56,8 @@ class CreateGameSerializer(serializers.ModelSerializer):
                 
 
                 #  -- Validating Choices meet bounds --
-                if (len(choices_data) < 2 or len(choices_data) > 4):
-                    raise serializers.ValidationError("Question must only have between 2 and 4 choices.")
+                if len(choices_data) != 4:
+                    raise serializers.ValidationError("Questions must have 4 choices.")
 
                 # Count of ccorrect choices has to be 1 and only 1, raise error if not
                 correct_count = 0
