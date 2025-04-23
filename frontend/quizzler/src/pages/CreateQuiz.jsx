@@ -10,6 +10,8 @@ const CreateQuiz = () => {
   const [questions, setQuestions] = useState([
     { question: '', options: ['', '', '', ''], answer: 0 },
   ]);
+  const [modalMessage, setModalMessage] = useState('');
+  const [showModal, setShowModal] = useState(false);
 
   const navigate = useNavigate();
 
@@ -36,8 +38,37 @@ const CreateQuiz = () => {
     setQuestions(updated);
   };
 
+  const handleDeleteQuestion = (indexToDelete) => {
+    setQuestions((prev) => {
+      if (prev.length <= 1) return prev;
+      return prev.filter((_, i) => i !== indexToDelete);
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!title.trim() || questions.length === 0) {
+      setModalMessage('Cannot save: a required field is empty.');
+      setShowModal(true);
+      return;
+    }
+    
+    for (const q of questions) {
+      if (!q.question.trim()) {
+        setModalMessage('Cannot save: a question field is left empty.');
+        setShowModal(true);
+        return;
+      }
+      for (const option of q.options) {
+        if (!option.trim()) {
+          setModalMessage('Cannot save: a choice field is left empty.');
+          setShowModal(true);
+          return;
+        }
+      }
+    }
+
     console.log({ title, description, questions });
     const payload = {
       title,
@@ -103,7 +134,7 @@ const CreateQuiz = () => {
           </div>
 
           {questions.map((q, index) => (
-            <div key={index} className="bg-gray-50 p-4 rounded-md border">
+            <div key={index} className="relative bg-gray-50 p-4 rounded-md border">
               <h3 className="text-lg font-semibold mb-2">Question {index + 1}</h3>
               <input
                 type="text"
@@ -139,6 +170,13 @@ const CreateQuiz = () => {
                 <option value={2}>Option 3</option>
                 <option value={3}>Option 4</option>
               </select>
+              <button
+                type="button"
+                onClick={() => handleDeleteQuestion(index)}
+                className="absolute top-2 right-2 text-red-600 text-xs hover:underline"
+              >
+                ✕
+              </button>
             </div>
           ))}
 
@@ -149,9 +187,25 @@ const CreateQuiz = () => {
             <Button type="submit" variant="primary">
               Save Quiz
             </Button>
+            <Button type="button" variant="danger" onClick={() => navigate('/dashboard')}>
+              Cancel
+            </Button>
           </div>
         </form>
       </div>
+      {showModal && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-md shadow-md w-80 text-center">
+            <p className="mb-4 text-gray-800">{modalMessage}</p>
+            <button
+              className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+              onClick={() => setShowModal(false)}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };
