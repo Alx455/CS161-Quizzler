@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import CreateQuiz from './pages/CreateQuiz';
+import EditQuiz from './pages/EditQuiz';
 import JoinGame from './pages/JoinGame';
 import Lobby from './pages/Lobby';
 import GamePlay from './pages/GamePlay';
@@ -27,6 +28,7 @@ function App() {
         {/* These will be protected later */}
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/create-quiz" element={<CreateQuiz />} />
+        <Route path="/edit-quiz/:gameId" element={<EditQuiz />} />
       </Routes>
     </Router>
   );

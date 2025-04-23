@@ -141,7 +141,24 @@ class RetrieveUserGamesView(APIView):
         games = Game.objects.filter(owner=request.user)
         serializer = GameSerializer(games, many=True)
         return Response(serializer.data)
-    
+
+class RetrieveSingleGameView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, game_id):
+        try:
+            game = Game.objects.get(id=game_id)
+        except Game.DoesNotExist:
+            return Response({'error': 'Game not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Only allow if game is public OR if user is the owner
+        # In other words, deny the request if the game is not public and the user requesting it is not the owner
+        if (not game.is_public) and (game.owner != request.user):
+            return Response({'error': 'You do not have permission to access this game.'}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = GameSerializer(game)
+        return Response(serializer.data)
+
 class DeleteGameView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -156,6 +173,7 @@ class DeleteGameView(APIView):
         # Delete game from DB
         game.delete()
         return Response({'message': 'Game deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+
 
 
 

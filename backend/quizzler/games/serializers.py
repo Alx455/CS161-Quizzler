@@ -6,7 +6,7 @@ from django.db import transaction
 class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Choice
-        fields = ['choice_text', 'is_correct']
+        fields = ['id', 'choice_text', 'is_correct']
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -14,7 +14,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Question
-        fields = ['question_text', 'choices']
+        fields = ['id', 'question_text', 'choices']
 
 class GameSerializer(serializers.ModelSerializer):
     questions = QuestionSerializer(many=True)

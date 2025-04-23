@@ -40,6 +40,8 @@ const Dashboard = () => {
 
     fetchGames();
   }, []);
+
+  
   return (
     <Layout>
       <div className="mb-6 flex justify-between items-center">
@@ -72,9 +74,11 @@ const Dashboard = () => {
                       {game.is_public ? 'Public' : 'Private'}
                     </p>
                     <div className="flex gap-2 mt-3">
+                    <Link to={`/edit-quiz/${game.id}`}>
                       <Button variant="primary">
                         Edit
                       </Button>
+                    </Link>
                       <Button variant="danger" onClick={() => handleDeleteClick(game.id)}>
                         Delete
                       </Button>

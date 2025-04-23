@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CreateGameView, UpdateGameView, RetrieveUserGamesView, DeleteGameView
+from .views import CreateGameView, UpdateGameView, RetrieveUserGamesView, DeleteGameView, RetrieveSingleGameView
 
 
 urlpatterns = [
@@ -11,5 +11,7 @@ urlpatterns = [
     path('my-games/', RetrieveUserGamesView.as_view(), name='my-games'),
     # Delete game API
     path('<int:game_id>/delete/', DeleteGameView.as_view(), name='delete-game'),
+    # Retrieve single game API
+    path('<int:game_id>/retrieve/', RetrieveSingleGameView.as_view(), name='retrieve-game'),
 
 ]
