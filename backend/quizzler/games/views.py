@@ -11,38 +11,12 @@ class CreateGameView(APIView):
     permission_classes = [IsAuthenticated] #only users that are logged in can access..
 
     def post(self, request):
-      # 
         serializer = CreateGameSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             game = serializer.save()
             return Response({"game_id": game.id}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-'''
-JSON body to create game is expected to be formatted as a nested structure such as the one below
-{
-  "title": "US Presidents Quiz",
-  "description": "This is a quiz about presidents",
-  "is_public": true,
-  "questions": [
-    {
-      "question_text": "Who was the first president of the United States?",
-      "choices": [
-        { "choice_text": "George Washington", "is_correct": true },
-        { "choice_text": "Abraham Lincoln", "is_correct": false },
-        { "choice_text": "Thomas Jefferson", "is_correct": false }
-      ]
-    },
-    {
-      "question_text": "Who was the president during World War II?",
-      "choices": [
-        { "choice_text": "Franklin D. Roosevelt", "is_correct": true },
-        { "choice_text": "John F. Kennedy", "is_correct": false },
-        { "choice_text": "Harry Truman", "is_correct": false }
-      ]
-    }
-  ]
-}
-'''
+
 
 class UpdateGameView(APIView):
     permission_classes = [IsAuthenticated]
@@ -93,14 +67,30 @@ class UpdateGameView(APIView):
                 question.delete()
             except Question.DoesNotExist:
                 continue
+            
+        # Create new questions and choices
+        new_questions = data.get('new_questions', [])
+        for question_data in new_questions:
+            if 'question_text' not in question_data:
+                return Response({'error': 'Each question must have a question_text.'}, status=400)
 
-        # Delete choices by id (remove choices for a question)
-        for choice_id in deleted_choices:
-            try:
-                choice = Choice.objects.get(id=choice_id)
-                choice.delete()
-            except Choice.DoesNotExist:
-                continue
+            choices_data = question_data.pop('choices', [])
+            if len(choices_data) != 4:
+                return Response({'error': 'Each question must have exactly 4 choices.'}, status=400)
+
+            correct_count = 0
+            for choice in choices_data:
+                if choice.get('is_correct'):
+                    correct_count += 1
+            if correct_count != 1:
+                return Response({'error': 'Only one correct choice is allowed'})
+            
+            # Create the question
+            question = Question.objects.create(game=game, question_text=question_data['question_text'])
+
+            # Create the associated choices
+            for choice_data in choices_data:
+                Choice.objects.create(question=question, **choice_data)
 
         return Response({'message': 'Game updated successfully'})
 '''
