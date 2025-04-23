@@ -80,10 +80,13 @@ const EditQuiz = () => {
 
   const handleDeleteQuestion = (indexToDelete) => {
     setQuestions((prev) => {
+      if (prev.length <= 1) return prev;
+  
       const questionToDelete = prev[indexToDelete];
       if (questionToDelete.id) {
         setDeletedQuestionIds((prevDeleted) => [...prevDeleted, questionToDelete.id]);
       }
+  
       return prev.filter((_, i) => i !== indexToDelete);
     });
   };
@@ -255,7 +258,7 @@ const EditQuiz = () => {
               Save Quiz
             </Button>
             <Button type="button" variant="danger" onClick={() => navigate('/dashboard')}>
-                Cancel
+              Cancel
             </Button>
           </div>
         </form>
