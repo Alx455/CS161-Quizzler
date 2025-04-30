@@ -7,8 +7,7 @@ from live_game_session.utils import generate_unique_session_code
 from games.models import Game
 
 class HostGameView(APIView):
-    permission_classes = [IsAuthenticated]  # Only logged-in users can host
-
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         serializer = HostGameSerializer(data=request.data)
         if not serializer.is_valid():
