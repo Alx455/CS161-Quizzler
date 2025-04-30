@@ -1,6 +1,6 @@
 // src/pages/Dashboard.jsx
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import {useNavigate, Link } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 
@@ -10,6 +10,9 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
   const [quizToDelete, setQuizToDelete] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  const navigate = useNavigate();
+  
 
   const handleDeleteClick = (gameId) => {
     setQuizToDelete(gameId);
@@ -40,6 +43,33 @@ const Dashboard = () => {
 
     fetchGames();
   }, []);
+
+  const handleHostGame = async (gameId) => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/live-game-session/host-game/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        },
+        body: JSON.stringify({ game_id: gameId }),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        alert(data.error || 'Failed to host game');
+        return;
+      }
+  
+      sessionStorage.setItem('isHost', 'true');
+      navigate(`/lobby/${data.session_code}`);
+    } catch (err) {
+      alert('Network error. Could not host game.');
+      console.error(err);
+    }
+  };
+  
 
   
   return (
@@ -81,6 +111,12 @@ const Dashboard = () => {
                     </Link>
                       <Button variant="danger" onClick={() => handleDeleteClick(game.id)}>
                         Delete
+                      </Button>
+                      <Button
+                        variant="success"
+                        onClick={() => handleHostGame(game.id)}
+                      >
+                        Host
                       </Button>
                     </div>
                   </div>

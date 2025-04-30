@@ -46,10 +46,12 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
+    'channels',
     # Custom apps below
     'authentication',
     'games',
     'live_game_session',
+
 ]
 
 # REST and JWT imports
@@ -78,6 +80,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000", # allow connection to React frontend on port 3000
     "http://localhost:5173", # allow requests from Vite on port 5173
 ]
+
+ASGI_APPLICATION = 'quizzler.routing.application'
 
 ROOT_URLCONF = 'quizzler.urls'
 

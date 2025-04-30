@@ -1,6 +1,6 @@
 // src/pages/Lobby.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import {useNavigate, useParams } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 
@@ -10,6 +10,12 @@ const Lobby = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const playerName = sessionStorage.getItem('playerName');
+  const isHost = sessionStorage.getItem('isHost') === 'true';
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     // In a real app, we would connect to WebSocket here and get real-time updates
@@ -25,6 +31,29 @@ const Lobby = () => {
       setLoading(false);
     }, 1000);
   }, [playerName]);
+
+  const handleEndSession = async () => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/live-game-session/end-session/${gameId}/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        },
+      });
+  
+      if (response.ok) {
+        alert("Session ended.");
+        sessionStorage.removeItem('isHost');
+        navigate('/dashboard'); 
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to end session.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error.');
+    }
+  };
 
   return (
     <Layout>
@@ -58,12 +87,41 @@ const Lobby = () => {
             
             <div className="text-center">
               <p className="text-gray-600 mb-4">Waiting for the host to start the game...</p>
-              {/* In a real app, only the host would see this button */}
-              <Button variant="primary">Start Game</Button>
+              {isHost && (
+                <>
+                  <Button variant="primary">
+                    Start Game
+                  </Button>
+                  <Button variant="danger" className="mt-2" onClick={() => setShowConfirmModal(true)}>
+                    End Session
+                  </Button>
+                </>
+              )}
             </div>
+
           </>
         )}
       </div>
+
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded p-6 shadow-md w-80 text-center">
+            <h2 className="text-lg font-semibold mb-4">End Game Session?</h2>
+            <p className="mb-4 text-sm text-gray-600">
+              This will permanently close the lobby and remove all players.
+            </p>
+            <div className="flex justify-center gap-4">
+              <Button variant="danger" onClick={handleEndSession}>
+                End Session
+              </Button>
+              <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </Layout>
   );
 };
