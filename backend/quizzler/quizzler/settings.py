@@ -78,6 +78,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'quizzler.middleware.LogRequestsMiddleware',
 ]
 
 CORS_ALLOWED_ORIGINS = [
