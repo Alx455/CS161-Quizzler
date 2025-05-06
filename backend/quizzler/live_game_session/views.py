@@ -28,6 +28,8 @@ class HostGameView(APIView):
             session_code=session_code
         )
 
+        Player.objects.create(session=session, username=request.user.username)
+
         return Response({'session_code': session.session_code, 'session_id': session.id})
     
 class EndGameSessionView(APIView):
