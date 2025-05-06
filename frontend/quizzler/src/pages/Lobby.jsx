@@ -46,7 +46,11 @@ const Lobby = () => {
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'session_ended') {
-        alert('The host has ended the session.');
+        if (!isHost) {
+          alert('The host has ended the session.');
+          sessionStorage.removeItem('playerName');
+          sessionStorage.removeItem('playerId');
+        }
         sessionStorage.removeItem('isHost');
         navigate('/dashboard');
       }
@@ -76,7 +80,6 @@ const Lobby = () => {
       });
   
       if (response.ok) {
-        alert("Session ended.");
         sessionStorage.removeItem('isHost');
         navigate('/dashboard'); 
       } else {
