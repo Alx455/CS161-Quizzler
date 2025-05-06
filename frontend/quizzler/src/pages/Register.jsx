@@ -5,6 +5,8 @@ import { Link } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 import Button from "../components/ui/Button";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Register = () => {
   const [formData, setFormData] = useState({
     username: "",
@@ -42,7 +44,7 @@ const Register = () => {
     };
   
     try {
-      const response = await fetch("http://127.0.0.1:8000/authentication/register/", requestOptions);
+      const response = await fetch(`${API_URL}/authentication/register/`, requestOptions);
       const data = await response.json();
   
       if (response.status === 409) {

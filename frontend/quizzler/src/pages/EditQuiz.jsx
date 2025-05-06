@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const EditQuiz = () => {
   const { gameId } = useParams();
   const [title, setTitle] = useState('');
@@ -21,7 +23,7 @@ const EditQuiz = () => {
   useEffect(() => {
     const fetchGame = async () => {
       try {
-        const response = await fetch(`http://127.0.0.1:8000/games/${gameId}/retrieve/`, {
+        const response = await fetch(`${API_URL}/games/${gameId}/retrieve/`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('access_token')}`,
           },
@@ -151,7 +153,7 @@ const EditQuiz = () => {
       
   
     try {
-      const response = await fetch(`http://127.0.0.1:8000/games/${gameId}/update-game/`, {
+      const response = await fetch(`${API_URL}/games/${gameId}/update-game/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

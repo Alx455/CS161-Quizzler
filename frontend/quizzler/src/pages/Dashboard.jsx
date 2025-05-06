@@ -4,6 +4,8 @@ import {useNavigate, Link } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Dashboard = () => {
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,7 +24,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchGames = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/games/my-games/', {
+        const response = await fetch(`${API_URL}/games/my-games/`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('access_token')}`,
           },
@@ -46,7 +48,7 @@ const Dashboard = () => {
 
   const handleHostGame = async (gameId) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/live-game-session/host-game/', {
+      const response = await fetch(`${API_URL}/live-game-session/host-game/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -150,7 +152,7 @@ const Dashboard = () => {
                 variant="danger"
                 onClick={async () => {
                   try {
-                    const response = await fetch(`http://127.0.0.1:8000/games/${quizToDelete}/delete/`, {
+                    const response = await fetch(`${API_URL}/games/${quizToDelete}/delete/`, {
                       method: 'DELETE',
                       headers: {
                         Authorization: `Bearer ${localStorage.getItem('access_token')}`,
