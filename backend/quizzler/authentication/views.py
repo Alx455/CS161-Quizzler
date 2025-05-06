@@ -28,6 +28,7 @@ class RegisterView(APIView):
             return Response({
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
+                'username': user.username,
             }, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -48,6 +49,7 @@ class LoginView(APIView):
             return Response({
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
+                'username': user.username,
             }, status=status.HTTP_200_OK)
             #user is considered logged in
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
