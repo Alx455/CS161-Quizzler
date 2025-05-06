@@ -4,36 +4,58 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const JoinGame = () => {
   const [gamePin, setGamePin] = useState('');
   const [playerName, setPlayerName] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
+  
     if (!gamePin) {
       setError('Please enter a game PIN');
       return;
     }
-    
+  
     if (!playerName) {
       setError('Please enter your name');
       return;
     }
-    
-    // In a real app, we would validate the PIN with the backend here
-    // For now, we'll just navigate to the lobby
-    const gameId = gamePin; // In real app, server would return actual game ID
-    
-    // Store player name in sessionStorage
-    sessionStorage.setItem('playerName', playerName);
-    
-    // Navigate to the lobby
-    navigate(`/lobby/${gameId}`);
+  
+    try {
+      const response = await fetch(`${API_URL}/live-game-session/join-session/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          session_code: gamePin,
+          username: playerName,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        setError(data.error || 'Failed to join game session');
+        return;
+      }
+  
+      sessionStorage.setItem('playerName', playerName);
+      sessionStorage.setItem('playerId', data.player_id);
+      sessionStorage.setItem('isHost', 'false');
+  
+      navigate(`/lobby/${gamePin}`);
+    } catch (err) {
+      console.error(err);
+      setError('Network error. Please try again.');
+    }
   };
+  
 
   return (
     <Layout>
