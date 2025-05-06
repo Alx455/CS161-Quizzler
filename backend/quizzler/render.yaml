@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: django-backend
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: daphne quizzler.asgi:application
+    autoDeploy: true  # optional
+
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: quizzler.settings
+      - key: ALLOWED_HOSTS
+        value: your-backend.onrender.com  # ✅ Replace with your actual Render URL once it’s created
+      - key: SECRET_KEY
+        value: your-secret-key-here  # ✅ Replace with a secure, random string (use `secrets.token_urlsafe(50)`)
+      - key: DEBUG
+        value: "False"  # Keep as "True" temporarily if debugging
