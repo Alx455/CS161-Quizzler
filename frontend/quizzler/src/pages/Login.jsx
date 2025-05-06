@@ -46,6 +46,7 @@ const Login = () => {
         localStorage.setItem("refresh_token", data.refresh);
   
         setError(null);
+        localStorage.setItem('username', data.username);
         navigate("/dashboard");
       } else {
         setError("Login failed.");

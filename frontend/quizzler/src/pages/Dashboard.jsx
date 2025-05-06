@@ -15,6 +15,8 @@ const Dashboard = () => {
 
   const navigate = useNavigate();
 
+  const username = localStorage.getItem('username');
+
   const handleDeleteClick = (gameId) => {
     setQuizToDelete(gameId);
     setShowConfirm(true);
@@ -70,6 +72,7 @@ const Dashboard = () => {
         return;
       }
   
+      sessionStorage.setItem('playerName', username);
       sessionStorage.setItem('isHost', 'true');
       navigate(`/lobby/${data.session_code}`);
     } catch (err) {
