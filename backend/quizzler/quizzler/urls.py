@@ -23,5 +23,5 @@ urlpatterns = [
     path('authentication/', include('authentication.urls')),
     path('games/', include('games.urls')),
     path('live-game-session/', include('live_game_session.urls')),
-    path("", lambda request: JsonResponse({"status": "Backend is running ✅"})),
+    path("", lambda request: JsonResponse({"status": "Backend is running"})),
 ]
