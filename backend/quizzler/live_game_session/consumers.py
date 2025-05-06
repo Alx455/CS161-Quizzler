@@ -108,5 +108,6 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
     async def player_joined(self, event):
         await self.send(text_data=json.dumps({
             "type": "player_joined",
-            "username": event["username"]
+            "username": event["username"],
+            "player_id": event["player_id"]
         }))
