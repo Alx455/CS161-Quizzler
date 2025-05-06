@@ -5,6 +5,8 @@ from live_game_session.models import GameSession, Player
 from live_game_session.serializers import JoinSessionSerializer, HostGameSerializer
 from live_game_session.utils import generate_unique_session_code
 from games.models import Game
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 class HostGameView(APIView):
     permission_classes = [IsAuthenticated]
@@ -36,6 +38,16 @@ class EndGameSessionView(APIView):
             session = GameSession.objects.get(session_code=session_code, host=request.user)
         except GameSession.DoesNotExist:
             return Response({'error': 'Session not found or unauthorized'}, status=404)
+
+        # send message to entire lobby through channels
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"session_{session_code}",
+            {
+                "type": "game.session_ended",
+                "message": "The host has ended the session."
+            }
+        )
 
         session.delete()
         return Response({'message': 'Game session ended and deleted.'})

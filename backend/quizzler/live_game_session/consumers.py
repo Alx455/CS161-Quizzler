@@ -59,3 +59,9 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
             "username": event["username"],
             "message": event["message"],
         }))
+
+    async def game_session_ended(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "session_ended",
+            "message": event["message"],
+        }))
