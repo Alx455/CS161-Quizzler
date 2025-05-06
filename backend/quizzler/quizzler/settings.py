@@ -31,7 +31,11 @@ SECRET_KEY = 'django-insecure-2wgrg2_q+^#1j21=79&l$(*#yr7h_&wu*pegy-)nrn=h^s5e^2
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = [
+    'localhost', 
+    '127.0.0.1',
+    "cs161-quizzler.onrender.com",
+    ]
 
 
 # Application definition
