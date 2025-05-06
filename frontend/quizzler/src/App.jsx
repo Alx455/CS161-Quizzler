@@ -21,9 +21,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/join" element={<JoinGame />} />
-        <Route path="/lobby/:id" element={<Lobby />} />
-        <Route path="/game/:id" element={<GamePlay />} />
-        <Route path="/results/:id" element={<Results />} />
+        <Route path="/lobby/:sessionCode" element={<Lobby />} />
+        <Route path="/game/:sessionCode" element={<GamePlay />} />
+        <Route path="/results/:sessionCode" element={<Results />} />
         
         {/* These will be protected later */}
         <Route path="/dashboard" element={<Dashboard />} />
