@@ -5,9 +5,11 @@ import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 
 const API_URL = import.meta.env.VITE_API_URL;
+const WS_URL = import.meta.env.VITE_WS_URL;
+
 
 const Lobby = () => {
-  const { id: gameId } = useParams();
+  const { sessionCode } = useParams();
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -34,9 +36,39 @@ const Lobby = () => {
     }, 1000);
   }, [playerName]);
 
+  useEffect(() => {
+    const socket = new WebSocket(`${WS_URL}/ws/session/${sessionCode}/`);
+  
+    socket.onopen = () => {
+      console.log('WebSocket connected');
+    };
+  
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'session_ended') {
+        alert('The host has ended the session.');
+        sessionStorage.removeItem('isHost');
+        navigate('/dashboard');
+      }
+    };
+  
+    socket.onclose = () => {
+      console.log('WebSocket disconnected');
+    };
+  
+    socket.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+  
+    return () => {
+      socket.close();
+    };
+  }, [sessionCode, navigate]);
+  
+
   const handleEndSession = async () => {
     try {
-      const response = await fetch(`${API_URL}/live-game-session/end-session/${gameId}/`, {
+      const response = await fetch(`${API_URL}/live-game-session/end-session/${sessionCode}/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
@@ -62,7 +94,7 @@ const Lobby = () => {
       <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold">Game Lobby</h1>
-          <p className="text-gray-600">Share PIN: <span className="font-bold text-lg">{gameId}</span></p>
+          <p className="text-gray-600">Share PIN: <span className="font-bold text-lg">{sessionCode}</span></p>
         </div>
         
         {loading ? (
