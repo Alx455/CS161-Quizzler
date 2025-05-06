@@ -14,12 +14,18 @@ const Dashboard = () => {
   const [showConfirm, setShowConfirm] = useState(false);
 
   const navigate = useNavigate();
-  
 
   const handleDeleteClick = (gameId) => {
     setQuizToDelete(gameId);
     setShowConfirm(true);
   };
+
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      navigate('/');
+    }
+  }, []);
 
   useEffect(() => {
     const fetchGames = async () => {

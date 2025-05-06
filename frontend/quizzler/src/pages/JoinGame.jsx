@@ -15,6 +15,8 @@ const JoinGame = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    //localStorage.removeItem('access_token');
   
     if (!gamePin) {
       setError('Please enter a game PIN');
