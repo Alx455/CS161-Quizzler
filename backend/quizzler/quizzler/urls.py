@@ -16,10 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.http import JsonResponse
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('authentication/', include('authentication.urls')),
     path('games/', include('games.urls')),
     path('live-game-session/', include('live_game_session.urls')),
+    path("", lambda request: JsonResponse({"status": "Backend is running ✅"})),
 ]
