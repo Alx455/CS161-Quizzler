@@ -4,6 +4,8 @@ import {useNavigate, useParams } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Lobby = () => {
   const { id: gameId } = useParams();
   const [players, setPlayers] = useState([]);
@@ -34,7 +36,7 @@ const Lobby = () => {
 
   const handleEndSession = async () => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/live-game-session/end-session/${gameId}/`, {
+      const response = await fetch(`${API_URL}/live-game-session/end-session/${gameId}/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,

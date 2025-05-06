@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const CreateQuiz = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -84,7 +86,7 @@ const CreateQuiz = () => {
     };
   
     try {
-      const response = await fetch('http://127.0.0.1:8000/games/create-game/', {
+      const response = await fetch(`${API_URL}/games/create-game/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
