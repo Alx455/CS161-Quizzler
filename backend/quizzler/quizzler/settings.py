@@ -37,6 +37,8 @@ ALLOWED_HOSTS = [
     "cs161-quizzler.onrender.com",
     ]
 
+CSRF_TRUSTED_ORIGINS = ['https://cs161-quizzler.onrender.com']
+
 
 # Application definition
 
@@ -84,6 +86,7 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000", # allow connection to React frontend on port 3000
     "http://localhost:5173", # allow requests from Vite on port 5173
+    "https://cs161-quizzler.onrender.com",
     #"https://your-frontend.vercel.app",  # future production frontend
 ]
 
