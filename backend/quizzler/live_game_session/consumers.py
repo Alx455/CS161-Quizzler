@@ -37,9 +37,13 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
             "players": players
         }))
 
-        player = await sync_to_async(Player.objects.get)(
-            session=session, username=self.username
-        )
+        try:
+            player = await sync_to_async(Player.objects.get)(
+                session=session, username=self.username
+            )
+        except Player.DoesNotExist:
+            await self.close()
+            return
 
         # Notify others that a new player has joined
         await self.channel_layer.group_send(
