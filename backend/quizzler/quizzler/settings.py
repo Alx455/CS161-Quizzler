@@ -89,6 +89,12 @@ CORS_ALLOWED_ORIGINS = [
 
 ASGI_APPLICATION = 'quizzler.routing.application'
 
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
+
 ROOT_URLCONF = 'quizzler.urls'
 
 TEMPLATES = [
