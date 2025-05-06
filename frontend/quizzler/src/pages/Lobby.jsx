@@ -22,22 +22,11 @@ const Lobby = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // In a real app, we would connect to WebSocket here and get real-time updates
-    // For demo purposes, we'll simulate some players joining
     setLoading(true);
-    
-    setTimeout(() => {
-      setPlayers([
-        { id: 1, name: playerName || 'You' },
-        { id: 2, name: 'Player 2' },
-        { id: 3, name: 'Player 3' }
-      ]);
-      setLoading(false);
-    }, 1000);
-  }, [playerName]);
+  }, []);
 
   useEffect(() => {
-    const socket = new WebSocket(`${WS_URL}/ws/session/${sessionCode}/`);
+    const socket = new WebSocket(`${WS_URL}/ws/session/${sessionCode}/?username=${playerName}`);
   
     socket.onopen = () => {
       console.log('WebSocket connected');
@@ -45,6 +34,7 @@ const Lobby = () => {
   
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
+    
       if (data.type === 'session_ended') {
         if (!isHost) {
           alert('The host has ended the session.');
@@ -53,8 +43,22 @@ const Lobby = () => {
         }
         sessionStorage.removeItem('isHost');
         navigate('/dashboard');
+      } else if (data.type === 'player_list') {
+        setPlayers(
+          data.players.map((p) => ({
+            id: p.id,    // Use DB ID internally
+            name: p.username
+          }))
+        );
+        setLoading(false);
+      } else if (data.type === 'player_joined') {
+        setPlayers(prev => {
+          const exists = prev.some(p => p.id === data.player_id);
+          return exists ? prev : [...prev, { id: data.player_id, name: data.username }];
+        });
       }
     };
+    
   
     socket.onclose = () => {
       console.log('WebSocket disconnected');
@@ -67,12 +71,12 @@ const Lobby = () => {
     return () => {
       socket.close();
     };
-  }, [sessionCode, navigate]);
+  }, [sessionCode, playerName, isHost, navigate]);
   
 
   const handleEndSession = async () => {
     try {
-      const response = await fetch(`${API_URL}/live-game-session/end-session/${sessionCode}/`, {
+        const response = await fetch(`${API_URL}/live-game-session/end-session/${sessionCode}/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
