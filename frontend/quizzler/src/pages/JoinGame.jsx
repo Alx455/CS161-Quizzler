@@ -49,7 +49,7 @@ const JoinGame = () => {
   
       sessionStorage.setItem('playerName', playerName);
       sessionStorage.setItem('playerId', data.player_id);
-      sessionStorage.setItem('isHost', 'false');
+      sessionStorage.setItem('isHostFlag', 'false');
   
       navigate(`/lobby/${gamePin}`);
     } catch (err) {
