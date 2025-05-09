@@ -173,6 +173,40 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+
+# Logging Configuration
+import sys
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,  # Ensures logs are sent to stdout (necessary for Render logs)
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',  # Adjust to 'DEBUG' for more detailed logs
+        },
+        'channels': {
+            'handlers': ['console'],
+            'level': 'DEBUG',  # WebSocket-related logs
+        },
+        'quizzler.live_game_session.consumers': {
+            'handlers': ['console'],
+            'level': 'DEBUG',  # Specific logging for GameSessionConsumer
+            'propagate': False,  # Prevent duplicate logging
+        },
+    },
+}
+
+
+
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
