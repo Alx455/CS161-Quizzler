@@ -43,6 +43,7 @@ const Lobby = () => {
           sessionStorage.removeItem('playerId');
         }
         sessionStorage.removeItem('isHost');
+        sessionStorage.removeItem('gameId');
         navigate('/dashboard');
       } else if (data.type === 'player_list') {
         setPlayers(
@@ -58,6 +59,8 @@ const Lobby = () => {
           return exists ? prev : [...prev, { id: data.player_id, name: data.username }];
         });
       } else if (data.type === "game_started") {
+        const gameID = data.game_id;
+        sessionStorage.setItem("gameId", gameID);
         navigate(`/game/${sessionCode}`);
       }
     };
