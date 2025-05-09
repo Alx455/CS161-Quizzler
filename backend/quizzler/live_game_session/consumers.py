@@ -3,6 +3,10 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from urllib.parse import parse_qs
 from asgiref.sync import sync_to_async
 from live_game_session.models import GameSession, Player
+import logging
+
+logger = logging.getLogger('quizzler.live_game_session.consumers')
+
 
 
 
@@ -58,17 +62,17 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         # Log the disconnection reason
-        print(f"[DISCONNECT] WebSocket closed with code: {close_code}")
-        print(f"[DISCONNECT] session_code: {self.session_code}")
-        print(f"[DISCONNECT] username: {self.username}")
+        logger.info(f"[DISCONNECT] WebSocket closed with code: {close_code}")
+        logger.info(f"[DISCONNECT] session_code: {self.session_code}")
+        logger.info(f"[DISCONNECT] username: {self.username}")
 
         # Check if the session still exists
         session = None
         try:
             session = await sync_to_async(GameSession.objects.get)(session_code=self.session_code)
-            print(f"[DISCONNECT] Session found: {session.session_code}")
+            logger.info(f"[DISCONNECT] Session found: {session.session_code}")
         except GameSession.DoesNotExist:
-            print(f"[DISCONNECT] Session {self.session_code} not found in database.")
+            logger.warning(f"[DISCONNECT] Session {self.session_code} not found in database.")
 
         # Check if the player still exists
         try:
@@ -77,19 +81,22 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
                     session=session,
                     username=self.username
                 )
-                print(f"[DISCONNECT] Player found: {player.username} with ID {player.id}")
+                logger.info(f"[DISCONNECT] Player found: {player.username} with ID {player.id}")
 
                 # Optional: Mark player as inactive
                 player.is_active = False
                 await sync_to_async(player.save)()
 
-                print(f"[DISCONNECT] Player {player.username} marked as inactive.")
+                logger.info(f"[DISCONNECT] Player {player.username} marked as inactive.")
         except Player.DoesNotExist:
-            print(f"[DISCONNECT] Player {self.username} not found in session {self.session_code}.")
+            logger.warning(f"[DISCONNECT] Player {self.username} not found in session {self.session_code}.")
 
         # Remove from group
-        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
-        print(f"[DISCONNECT] Removed from group: {self.room_group_name}")
+        try:
+            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+            logger.info(f"[DISCONNECT] Removed from group: {self.room_group_name}")
+        except Exception as e:
+            logger.error(f"[DISCONNECT] Error removing from group: {e}")
 
 
 
