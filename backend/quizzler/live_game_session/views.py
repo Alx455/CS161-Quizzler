@@ -1,3 +1,4 @@
+from datetime import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -51,8 +52,11 @@ class EndGameSessionView(APIView):
             }
         )
 
-        session.delete()
-        return Response({'message': 'Game session ended and deleted.'})
+        session.is_active = False
+        session.expires_at = timezone.now()
+        session.save()
+        
+        return Response({'message': 'Game session ended and marked as not active.'})
 
 class JoinSessionView(APIView):
     permission_classes = [AllowAny]

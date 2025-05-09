@@ -69,6 +69,7 @@ export const WebSocketProvider = ({ children }) => {
     socketRef.current.onclose = (event) => {
         console.log(`WebSocket closed: Code ${event.code}, Reason: ${event.reason}`);
       
+        /**
         if (event.code === 1006) {
           console.warn("Unexpected closure (1006). Attempting reconnection...");
       
@@ -106,6 +107,7 @@ export const WebSocketProvider = ({ children }) => {
             }
           }, retryInterval);
         }
+          */
       };
       
 
