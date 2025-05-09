@@ -56,6 +56,8 @@ const Lobby = () => {
           const exists = prev.some(p => p.id === data.player_id);
           return exists ? prev : [...prev, { id: data.player_id, name: data.username }];
         });
+      } else if (data.type === "game_started") {
+        navigate(`/game/${sessionCode}`);
       }
     };
     
@@ -73,6 +75,9 @@ const Lobby = () => {
     };
   }, [sessionCode, playerName, isHost, navigate]);
   
+  const handleStartGame = () => {
+    socket.send(JSON.stringify({ type: "start_game" }));
+  };
 
   const handleEndSession = async () => {
     try {
@@ -130,7 +135,7 @@ const Lobby = () => {
               <p className="text-gray-600 mb-4">Waiting for the host to start the game...</p>
               {isHost && (
                 <>
-                  <Button variant="primary">
+                  <Button variant="primary" onClick={handleStartGame}>
                     Start Game
                   </Button>
                   <Button variant="danger" className="mt-2" onClick={() => setShowConfirmModal(true)}>
