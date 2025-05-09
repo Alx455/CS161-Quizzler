@@ -17,7 +17,7 @@ const Lobby = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   // Access WebSocket context
-  const { connectWebSocket, sendMessage, players, isConnected, isHost } = useWebSocket();
+  const { connectWebSocket, disconnectWebSocket, sendMessage, players, isConnected, isHost } = useWebSocket();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -60,6 +60,7 @@ const Lobby = () => {
       });
   
       if (response.ok) {
+        disconnectWebSocket();
         sessionStorage.removeItem('isHost');
         navigate('/dashboard'); 
       } else {

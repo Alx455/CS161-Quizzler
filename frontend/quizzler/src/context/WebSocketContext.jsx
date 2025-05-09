@@ -27,6 +27,13 @@ export const WebSocketProvider = ({ children }) => {
     setIsHost(false);
   };
 
+  const disconnectWebSocket = () => {
+    if (socketRef.current) {
+      console.log("Manually disconnecting WebSocket...");
+      socketRef.current.close();
+    }
+  };
+
   /**
    * Establish WebSocket connection
    */
@@ -54,11 +61,14 @@ export const WebSocketProvider = ({ children }) => {
       handleWebSocketMessage(data);
     };
 
-    socketRef.current.onclose = () => {
-      console.log("WebSocket disconnected");
-      clearSessionData();
-      navigate("/dashboard");
-    };
+    socketRef.current.onclose = (event) => {
+        console.log("WebSocket closed:", event.code, event.reason);
+      
+        if (event.code !== 1000) {
+          clearSessionData();
+          navigate("/dashboard");
+        }
+      };
 
     socketRef.current.onerror = (error) => {
       console.error("WebSocket error:", error);
@@ -144,7 +154,7 @@ export const WebSocketProvider = ({ children }) => {
    * Context value
    */
   return (
-    <WebSocketContext.Provider value={{ connectWebSocket, sendMessage, players, isConnected, isHost }}>
+    <WebSocketContext.Provider value={{ connectWebSocket, sendMessage, disconnectWebSocket, players, isConnected, isHost }}>
       {children}
     </WebSocketContext.Provider>
   );
