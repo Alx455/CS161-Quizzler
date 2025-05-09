@@ -63,6 +63,7 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
         print(f"[DISCONNECT] username: {self.username}")
 
         # Check if the session still exists
+        session = None
         try:
             session = await sync_to_async(GameSession.objects.get)(session_code=self.session_code)
             print(f"[DISCONNECT] Session found: {session.session_code}")
@@ -71,17 +72,18 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
 
         # Check if the player still exists
         try:
-            player = await sync_to_async(Player.objects.get)(
-                session=session,
-                username=self.username
-            )
-            print(f"[DISCONNECT] Player found: {player.username} with ID {player.id}")
+            if session:
+                player = await sync_to_async(Player.objects.get)(
+                    session=session,
+                    username=self.username
+                )
+                print(f"[DISCONNECT] Player found: {player.username} with ID {player.id}")
 
-            # Optional: Mark player as inactive
-            player.is_active = False
-            await sync_to_async(player.save)()
+                # Optional: Mark player as inactive
+                player.is_active = False
+                await sync_to_async(player.save)()
 
-            print(f"[DISCONNECT] Player {player.username} marked as inactive.")
+                print(f"[DISCONNECT] Player {player.username} marked as inactive.")
         except Player.DoesNotExist:
             print(f"[DISCONNECT] Player {self.username} not found in session {self.session_code}.")
 
