@@ -51,6 +51,11 @@ export const WebSocketProvider = ({ children }) => {
     socketRef.current.onopen = () => {
       console.log("WebSocket connected");
       setIsConnected(true);
+
+      sessionStorage.setItem("sessionCode", code);
+      sessionStorage.setItem("playerName", username);
+      sessionStorage.setItem("isHost", isHostFlag ? "true" : "false");
+
       setSessionCode(code);
       setPlayerName(username);
       setIsHost(isHostFlag);
@@ -62,13 +67,47 @@ export const WebSocketProvider = ({ children }) => {
     };
 
     socketRef.current.onclose = (event) => {
-        console.log("WebSocket closed:", event.code, event.reason);
+        console.log(`WebSocket closed: Code ${event.code}, Reason: ${event.reason}`);
       
-        if (event.code !== 1000) {
-          clearSessionData();
-          navigate("/dashboard");
+        if (event.code === 1006) {
+          console.warn("Unexpected closure (1006). Attempting reconnection...");
+      
+          let retryCount = 0;
+          const maxRetries = 3;
+          const retryInterval = 3000;
+      
+          const attemptReconnection = () => {
+            if (retryCount >= maxRetries) {
+              console.warn("Max reconnection attempts reached. Session data is not cleared.");
+              return;
+            }
+      
+            // Always retrieve session data directly from sessionStorage
+            const storedSessionCode = sessionStorage.getItem("sessionCode");
+            const storedPlayerName = sessionStorage.getItem("playerName");
+            const storedIsHost = sessionStorage.getItem("isHost") === 'true';
+      
+            if (storedSessionCode && storedPlayerName) {
+              console.log(`Reconnecting attempt ${retryCount + 1} of ${maxRetries}...`);
+              connectWebSocket(storedSessionCode, storedPlayerName, storedIsHost);
+              retryCount++;
+            } else {
+              console.warn("Reconnection aborted: Missing session data.");
+            }
+          };
+      
+          // Reconnect every 3 seconds, up to 3 attempts
+          const reconnectionInterval = setInterval(() => {
+            if (isConnected) {
+              console.log("Reconnection successful.");
+              clearInterval(reconnectionInterval);
+            } else {
+              attemptReconnection();
+            }
+          }, retryInterval);
         }
       };
+      
 
     socketRef.current.onerror = (error) => {
       console.error("WebSocket error:", error);
@@ -106,7 +145,7 @@ export const WebSocketProvider = ({ children }) => {
   const handleSessionEnded = () => {
     console.log("Session ended by host. Redirecting to dashboard...");
     clearSessionData();
-    navigate("/dashboard");
+    //navigate("/dashboard");
   };
 
   /**
