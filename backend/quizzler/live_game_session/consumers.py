@@ -76,6 +76,14 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
                 return
 
             host_username = await sync_to_async(lambda: session.host.username)()
+            try:
+                game_id = await sync_to_async(lambda: session.game.id)()
+            except AttributeError:
+                await self.send(text_data=json.dumps({
+                    "type": "error",
+                    "message": "Game ID not found."
+                }))
+                return
 
             if host_username != self.username:
                 # Only host can start the game
@@ -90,6 +98,7 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
                 self.room_group_name,
                 {
                     "type": "game_started",
+                    "game_id": game_id
                 }
             )
         else:
