@@ -52,6 +52,7 @@ export const WebSocketProvider = ({ children }) => {
       console.log("WebSocket connected");
       setIsConnected(true);
 
+      console.log("Setting session storage vars: sessionCode, playerName, isHost");
       sessionStorage.setItem("sessionCode", code);
       sessionStorage.setItem("playerName", username);
       sessionStorage.setItem("isHost", isHostFlag ? "true" : "false");

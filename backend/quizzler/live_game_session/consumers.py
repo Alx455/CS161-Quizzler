@@ -26,6 +26,15 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
             logger.warning("[CONNECT] No username provided. Closing connection.")
             await self.close()
             return
+        
+        # Check if this user is already connected
+        group_channels = self.channel_layer.groups.get(self.room_group_name, [])
+        for connection in group_channels:
+            if connection == self.channel_name:
+                logger.warning(f"[CONNECT] Duplicate connection attempt for {self.username}. Closing new connection.")
+                await self.close()
+                return
+
 
         # Retrieve session
         try:
@@ -100,6 +109,11 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
             logger.error(f"[CONNECT] Error notifying group about player {self.username}. Exception: {str(e)}")
             await self.close()
             return
+
+
+
+
+
 
 
     async def disconnect(self, close_code):
