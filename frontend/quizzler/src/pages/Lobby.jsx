@@ -3,90 +3,53 @@ import React, { useState, useEffect, useRef } from 'react';
 import {useNavigate, useParams } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
+import { useWebSocket } from "../context/WebSocketContext";
+
 
 const API_URL = import.meta.env.VITE_API_URL;
-const WS_URL = import.meta.env.VITE_WS_URL;
-
 
 const Lobby = () => {
   const { sessionCode } = useParams();
-  const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const playerName = sessionStorage.getItem('playerName');
-  const isHost = sessionStorage.getItem('isHost') === 'true';
+  const isHostFlag = sessionStorage.getItem('isHostFlag')
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-
-
+  // Access WebSocket context
+  const { connectWebSocket, disconnectWebSocket, sendMessage, players, isConnected, isHost } = useWebSocket();
   const navigate = useNavigate();
-  const socketRef = useRef(null);
 
   useEffect(() => {
-    setLoading(true);
-  }, []);
-
-  useEffect(() => {
-    socketRef.current = new WebSocket(`${WS_URL}/ws/session/${sessionCode}/?username=${playerName}`);
-    
-    socketRef.current.onopen = () => {
-      console.log('WebSocket connected');
-    };
-    
-    socketRef.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-    
-      if (data.type === 'session_ended') {
-        if (!isHost) {
-          alert('The host has ended the session.');
-          sessionStorage.removeItem('playerName');
-          sessionStorage.removeItem('playerId');
-        }
-        sessionStorage.removeItem('isHost');
-        sessionStorage.removeItem('gameId');
-        navigate('/dashboard');
-      } else if (data.type === 'player_list') {
-        setPlayers(
-          data.players.map((p) => ({
-            id: p.id,
-            name: p.username
-          }))
-        );
-        setLoading(false);
-      } else if (data.type === 'player_joined') {
-        setPlayers(prev => {
-          const exists = prev.some(p => p.id === data.player_id);
-          return exists ? prev : [...prev, { id: data.player_id, name: data.username }];
-        });
-      } else if (data.type === "game_started") {
-        const gameID = data.game_id;
-        sessionStorage.setItem("gameId", gameID);
-        navigate(`/game/${sessionCode}`);
-      }
-    };
-    
-    socketRef.current.onclose = () => {
-      console.log('WebSocket disconnected');
-    };
-    
-    socketRef.current.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-    
-    return () => {
-      socketRef.current.close();
-    };
-  }, [sessionCode, playerName, isHost, navigate]);
+    setLoading(!isConnected);
+  }, [isConnected]);
   
+
+  /**
+   * Establish WebSocket connection when entering the lobby
+   */
+  useEffect(() => {
+    if (!isConnected && sessionCode && playerName) {
+      console.log("Lobby: Attempting to connect WebSocket...");
+      connectWebSocket(sessionCode, playerName, isHostFlag);
+    }
+  }, [connectWebSocket, isConnected, sessionCode, playerName, isHostFlag]);
+
+  /**
+   * Handle Start Game (Only Host Can Start)
+   */
   const handleStartGame = () => {
-    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-      socketRef.current.send(JSON.stringify({ type: "start_game" }));
-      console.log("Start game message sent");
+    if (isConnected) {
+      console.log("Lobby: Starting game...");
+      sendMessage({ type: "start_game" });
     } else {
-      console.log("WebSocket is not open");
+      console.warn("WebSocket not connected. Cannot start game.");
     }
   };
 
+  /**
+   * Handle End Session
+   */
   const handleEndSession = async () => {
     try {
         const response = await fetch(`${API_URL}/live-game-session/end-session/${sessionCode}/`, {
@@ -97,6 +60,7 @@ const Lobby = () => {
       });
   
       if (response.ok) {
+        disconnectWebSocket();
         sessionStorage.removeItem('isHost');
         navigate('/dashboard'); 
       } else {

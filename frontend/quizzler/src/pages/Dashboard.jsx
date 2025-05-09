@@ -73,7 +73,7 @@ const Dashboard = () => {
       }
   
       sessionStorage.setItem('playerName', username);
-      sessionStorage.setItem('isHost', 'true');
+      sessionStorage.setItem('isHostFlag', 'true');
       navigate(`/lobby/${data.session_code}`);
     } catch (err) {
       alert('Network error. Could not host game.');
