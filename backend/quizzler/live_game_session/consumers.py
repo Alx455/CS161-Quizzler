@@ -70,6 +70,23 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
             await self.handle_chat_message(data)
         elif message_type == 'item_use':
             await self.handle_item_use(data)
+        elif message_type == "start_game":
+            try:
+                session = await sync_to_async(GameSession.objects.get)(session_code=self.session_code)
+            except GameSession.DoesNotExist:
+                return
+
+            if session.host.username != self.username:
+                # Only host can start the game
+                return
+
+            # Broadcast to all players that the game has started
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "game_started",
+                }
+            )
         else:
             # Optional: Handle unknown message types
             pass
@@ -110,4 +127,9 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
             "type": "player_joined",
             "username": event["username"],
             "player_id": event["player_id"]
+        }))
+
+    async def game_started(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "game_started"
         }))
