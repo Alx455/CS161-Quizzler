@@ -63,7 +63,6 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
-
         message_type = data.get('type')
 
         if message_type == 'chat_message':
@@ -76,8 +75,14 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
             except GameSession.DoesNotExist:
                 return
 
-            if session.host.username != self.username:
+            host_username = await sync_to_async(lambda: session.host.username)()
+
+            if host_username != self.username:
                 # Only host can start the game
+                await self.send(text_data=json.dumps({
+                    "type": "error",
+                    "message": "Only the host can start the game."
+                }))
                 return
 
             # Broadcast to all players that the game has started

@@ -1,5 +1,5 @@
 // src/pages/Lobby.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {useNavigate, useParams } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
@@ -20,19 +20,20 @@ const Lobby = () => {
 
 
   const navigate = useNavigate();
+  const socketRef = useRef(null);
 
   useEffect(() => {
     setLoading(true);
   }, []);
 
   useEffect(() => {
-    const socket = new WebSocket(`${WS_URL}/ws/session/${sessionCode}/?username=${playerName}`);
-  
-    socket.onopen = () => {
+    socketRef.current = new WebSocket(`${WS_URL}/ws/session/${sessionCode}/?username=${playerName}`);
+    
+    socketRef.current.onopen = () => {
       console.log('WebSocket connected');
     };
-  
-    socket.onmessage = (event) => {
+    
+    socketRef.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
     
       if (data.type === 'session_ended') {
@@ -46,7 +47,7 @@ const Lobby = () => {
       } else if (data.type === 'player_list') {
         setPlayers(
           data.players.map((p) => ({
-            id: p.id,    // Use DB ID internally
+            id: p.id,
             name: p.username
           }))
         );
@@ -61,22 +62,26 @@ const Lobby = () => {
       }
     };
     
-  
-    socket.onclose = () => {
+    socketRef.current.onclose = () => {
       console.log('WebSocket disconnected');
     };
-  
-    socket.onerror = (error) => {
+    
+    socketRef.current.onerror = (error) => {
       console.error('WebSocket error:', error);
     };
-  
+    
     return () => {
-      socket.close();
+      socketRef.current.close();
     };
   }, [sessionCode, playerName, isHost, navigate]);
   
   const handleStartGame = () => {
-    socket.send(JSON.stringify({ type: "start_game" }));
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify({ type: "start_game" }));
+      console.log("Start game message sent");
+    } else {
+      console.log("WebSocket is not open");
+    }
   };
 
   const handleEndSession = async () => {
