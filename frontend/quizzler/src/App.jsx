@@ -11,6 +11,7 @@ import JoinGame from "./pages/JoinGame";
 import Lobby from "./pages/Lobby";
 import GamePlay from "./pages/GamePlay";
 import Results from "./pages/Results";
+import WebSocketTest from "./pages/SocketsTest";
 
 function App() {
   return (
@@ -28,6 +29,8 @@ function App() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/create-quiz" element={<CreateQuiz />} />
       <Route path="/edit-quiz/:gameId" element={<EditQuiz />} />
+
+      <Route path="/socket-test" element={<WebSocketTest />} />
     </Routes>
   );
 }

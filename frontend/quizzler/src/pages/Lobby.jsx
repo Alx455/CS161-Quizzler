@@ -10,7 +10,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 const Lobby = () => {
   const { sessionCode } = useParams();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const playerName = sessionStorage.getItem('playerName');
   const isHostFlag = sessionStorage.getItem('isHostFlag')
@@ -20,21 +20,12 @@ const Lobby = () => {
   const { connectWebSocket, disconnectWebSocket, sendMessage, players, isConnected, isHost } = useWebSocket();
   const navigate = useNavigate();
 
+  /**
   useEffect(() => {
     setLoading(!isConnected);
   }, [isConnected]);
+  */
   
-
-  /**
-   * Establish WebSocket connection when entering the lobby
-   */
-  useEffect(() => {
-    if (!isConnected && sessionCode && playerName) {
-      console.log("Lobby: Attempting to connect WebSocket...");
-      connectWebSocket(sessionCode, playerName, isHostFlag);
-    }
-  }, [connectWebSocket, isConnected, sessionCode, playerName, isHostFlag]);
-
   /**
    * Handle Start Game (Only Host Can Start)
    */

@@ -3,6 +3,9 @@ import React, { useEffect, useState } from 'react';
 import {useNavigate, Link } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
+import { useWebSocket } from "../context/WebSocketContext";
+
+
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -14,6 +17,7 @@ const Dashboard = () => {
   const [showConfirm, setShowConfirm] = useState(false);
 
   const navigate = useNavigate();
+  const { connectWebSocket } = useWebSocket();
 
   const username = localStorage.getItem('username');
 
@@ -71,6 +75,10 @@ const Dashboard = () => {
         alert(data.error || 'Failed to host game');
         return;
       }
+
+      // Establish WebSocket connection before navigating
+      const sessionCode = data.session_code;
+      connectWebSocket(sessionCode, username, true);
   
       sessionStorage.setItem('playerName', username);
       sessionStorage.setItem('isHostFlag', 'true');
