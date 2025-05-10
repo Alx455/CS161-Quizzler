@@ -175,11 +175,11 @@ export const WebSocketProvider = ({ children }) => {
     /**
    * Handle game start
    */
-  const handleGameStarted = (data) => {
-    const { game_id } = data;
-    sessionStorage.setItem("gameId", game_id);
-    navigate(`/game/${sessionCode}`);
-  };
+    const handleGameStarted = (data) => {
+      const { game_id } = data;
+      sessionStorage.setItem("gameId", game_id);
+      navigate(`/game/${sessionCode}`);
+    };
 
   /**
    * Send message through WebSocket
