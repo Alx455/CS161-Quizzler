@@ -3,101 +3,158 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const GamePlay = () => {
-  const { id: gameId } = useParams();
+
+  const { id: sessionCode } = useParams();
+  const storedGameId = sessionStorage.getItem("gameId");
+
+  const [gameData, setGameData] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(null);
+  const [questionIndex, setQuestionIndex] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(0);
-  const [questionNumber, setQuestionNumber] = useState(1);
-  const [totalQuestions, setTotalQuestions] = useState(5);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
-  
-  // In a real app, this would be handled via WebSockets
+
+  /**
+   * Fetch game data on initial load
+   */
   useEffect(() => {
-    // Simulate loading a question
-    const mockQuestion = {
-      id: 1,
-      text: "What is the capital of France?",
-      options: [
-        { id: 'a', text: 'London' },
-        { id: 'b', text: 'Berlin' },
-        { id: 'c', text: 'Paris' },
-        { id: 'd', text: 'Rome' }
-      ],
-      timeLimit: 20
+    const fetchGameData = async () => {
+      if (!storedGameId) return;
+
+      try {
+        const response = await fetch(`${API_URL}/games/${storedGameId}/retrieve/`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          },
+        });
+        if (!response.ok) throw new Error("Failed to load game data");
+
+        const data = await response.json();
+        setGameData(data);
+        setCurrentQuestion(data.questions[0]);
+        setTimeRemaining(30);  // Default time limit per question
+      } catch (error) {
+        console.error("Error loading game data:", error);
+      }
     };
-    
-    setCurrentQuestion(mockQuestion);
-    setTimeRemaining(mockQuestion.timeLimit);
-    
-    // Start timer
+
+    fetchGameData();
+  }, [storedGameId]);
+
+  /**
+   * Listen for "questionBroadcast" and "gameEnded" events
+   */
+  useEffect(() => {
+    const handleQuestionBroadcast = (e) => {
+      const { question_index, question_data } = e.detail;
+      console.log("Received Question:", question_data);
+
+      setCurrentQuestion(question_data);
+      setQuestionIndex(question_index);
+      setTimeRemaining(30);  // Reset timer for each question
+      setIsAnswerSubmitted(false);
+      setSelectedAnswer(null);
+    };
+
+    const handleGameEnded = (e) => {
+      console.log("Game Ended Event Received:", e.detail);
+      setScores(e.detail.scores);
+      navigate("/dashboard");  // Navigate back to dashboard or show game summary
+    };
+
+    window.addEventListener("questionBroadcast", handleQuestionBroadcast);
+    window.addEventListener("gameEnded", handleGameEnded);
+
+    return () => {
+      window.removeEventListener("questionBroadcast", handleQuestionBroadcast);
+      window.removeEventListener("gameEnded", handleGameEnded);
+    };
+  }, [navigate]);
+
+  /**
+   * Handle Timer Logic
+   */
+  useEffect(() => {
+    if (timeRemaining <= 0) return;
+
     const timer = setInterval(() => {
-      setTimeRemaining(prev => {
+      setTimeRemaining((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
+          handleNextQuestion();
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
-    
+
     return () => clearInterval(timer);
-  }, []);
-  
+  }, [timeRemaining]);
+
+  /**
+   * Handle Answer Selection
+   */
   const handleSelectAnswer = (answerId) => {
     if (isAnswerSubmitted || timeRemaining === 0) return;
-    
+
     setSelectedAnswer(answerId);
     setIsAnswerSubmitted(true);
-    
-    // In a real app, we would send this to the server
+
     console.log(`Answer submitted: ${answerId}`);
+    // TODO: Send answer to server via WebSocket
   };
-  
+
   return (
     <Layout>
       <div className="max-w-3xl mx-auto">
-        {/* Header with question counter and timer */}
+        <h1 className="text-2xl font-bold mb-4">Game Play</h1>
+
+        {/* Question Timer and Progress */}
         <div className="bg-white p-4 rounded-lg shadow-md mb-4 flex justify-between items-center">
           <div className="font-medium">
-            Question {questionNumber} of {totalQuestions}
+            Question {questionIndex + 1} of {gameData ? gameData.questions.length : "Loading..."}
           </div>
           <div className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-medium">
             {timeRemaining} seconds
           </div>
         </div>
-        
-        {/* Question */}
-        {currentQuestion && (
+
+        {/* Question and Options */}
+        {currentQuestion ? (
           <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-            <h2 className="text-xl font-bold mb-6">{currentQuestion.text}</h2>
-            
+            <h2 className="text-xl font-bold mb-6">{currentQuestion.question_text}</h2>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {currentQuestion.options.map(option => (
+              {currentQuestion.choices.map((choice, index) => (
                 <button
-                  key={option.id}
-                  onClick={() => handleSelectAnswer(option.id)}
-                  className={`p-4 rounded-lg text-left transition-all ${
-                    selectedAnswer === option.id
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-gray-100 hover:bg-gray-200'
-                  } ${isAnswerSubmitted || timeRemaining === 0 ? 'pointer-events-none' : ''}`}
-                  disabled={isAnswerSubmitted || timeRemaining === 0}
+                  key={index}
+                  onClick={() => handleSelectAnswer(choice.choice_text)}
+                  className={`p-4 rounded-lg transition ${
+                    selectedAnswer === choice.choice_text
+                      ? "bg-indigo-600 text-white"
+                      : "bg-gray-100 hover:bg-gray-200"
+                  } ${isAnswerSubmitted ? "pointer-events-none" : ""}`}
+                  disabled={isAnswerSubmitted}
                 >
-                  <span className="font-medium">{option.id.toUpperCase()}</span>. {option.text}
+                  {choice.choice_text}
                 </button>
               ))}
             </div>
           </div>
+        ) : (
+          <p>Loading question...</p>
         )}
-        
-        {/* Status message */}
+
+        {/* Status Message */}
         {isAnswerSubmitted && (
           <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded text-center">
             Answer submitted! Waiting for other players...
           </div>
         )}
-        
+
         {timeRemaining === 0 && !isAnswerSubmitted && (
           <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded text-center">
             Time's up! The correct answer will be revealed soon.

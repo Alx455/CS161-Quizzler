@@ -199,12 +199,70 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
                     "game_id": game_id
                 }
             )
+
+            # Initialize the current question index in the session
+            session.current_round = 0
+            await sync_to_async(session.save)()
+
+            # Send the first question
+            await self.send_question(session, game_id, 0)
+
+        elif message_type == "next_question":
+            try:
+                session = await sync_to_async(GameSession.objects.get)(session_code=self.session_code)
+                game = session.game
+                game_id = game.id
+
+                current_index = session.current_round
+                next_index = current_index + 1
+
+                # Check if there are more questions
+                if next_index < game.questions.count():
+                    session.current_round = next_index
+                    await sync_to_async(session.save)()
+                    await self.send_question(session, game_id, next_index)
+                else:
+                    # End game if no more questions
+                    await self.channel_layer.group_send(
+                        self.room_group_name,
+                        {
+                            "type": "game_ended",
+                            "message": "Game Over",
+                            "scores": [
+                                {"username": player.username, "score": player.score}
+                                for player in session.player_set.all()
+                            ]
+                        }
+                    )
+
+            except GameSession.DoesNotExist:
+                await self.send(text_data=json.dumps({
+                    "type": "error",
+                    "message": "Session not found."
+                }))
+
         elif message_type == "ping":
             await self.send(text_data=json.dumps({"type": "pong"}))
             
         else:
             # Optional: Handle unknown message types
             pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     async def handle_chat_message(self, data):
         username = data['username']
@@ -231,12 +289,6 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
             "message": event["message"],
         }))
 
-    async def game_session_ended(self, event):
-        await self.send(text_data=json.dumps({
-            "type": "session_ended",
-            "message": event["message"],
-        }))
-
     async def player_joined(self, event):
         await self.send(text_data=json.dumps({
             "type": "player_joined",
@@ -254,4 +306,50 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             "type": "game_started",
             "game_id": game_id
+        }))
+
+    async def send_question(self, session, game_id, question_index):
+        try:
+            # Fetch the question
+            game = await sync_to_async(lambda: session.game)()
+            questions = game.questions.all()
+            if question_index >= len(questions):
+                print(f"Invalid question index: {question_index}")
+                return
+
+            question = questions[question_index]
+            choices = question.choices.all()
+
+            # Broadcast question to all players
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "question_broadcast",
+                    "question_index": question_index,
+                    "question_data": {
+                        "question_text": question.question_text,
+                        "choices": [
+                            {"choice_text": choice.choice_text, "is_correct": choice.is_correct}
+                            for choice in choices
+                        ]
+                    }
+                }
+            )
+
+        except Exception as e:
+            print(f"Error in sending question: {e}")
+
+
+    async def question_broadcast(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "question_broadcast",
+            "question_index": event["question_index"],
+            "question_data": event["question_data"]
+        }))
+
+    async def game_ended(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "game_ended",
+            "message": event["message"],
+            "scores": event.get("scores", [])
         }))
