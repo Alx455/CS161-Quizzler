@@ -199,6 +199,9 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
                     "game_id": game_id
                 }
             )
+        elif message_type == "ping":
+            await self.send(text_data=json.dumps({"type": "pong"}))
+            
         else:
             # Optional: Handle unknown message types
             pass
