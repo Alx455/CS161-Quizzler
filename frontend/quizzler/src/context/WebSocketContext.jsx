@@ -5,6 +5,7 @@ const WebSocketContext = createContext();
 
 export const WebSocketProvider = ({ children }) => {
   const socketRef = useRef(null);
+  const pingIntervalRef = useRef(null);
   const [players, setPlayers] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [sessionCode, setSessionCode] = useState(null);
@@ -32,6 +33,31 @@ export const WebSocketProvider = ({ children }) => {
       console.log("Manually disconnecting WebSocket...");
       socketRef.current.close();
     }
+    stopPing();
+  };
+
+   /**
+   * Start ping interval
+   */
+   const startPing = () => {
+    stopPing();
+
+    pingIntervalRef.current = setInterval(() => {
+      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+        console.log("Sending ping...");
+        socketRef.current.send(JSON.stringify({ type: "ping" }));
+      }
+    }, 25000); // Ping every 25 seconds
+  };
+
+  /**
+   * Stop ping interval
+   */
+  const stopPing = () => {
+    if (pingIntervalRef.current) {
+      clearInterval(pingIntervalRef.current);
+      pingIntervalRef.current = null;
+    }
   };
 
   /**
@@ -42,6 +68,10 @@ export const WebSocketProvider = ({ children }) => {
       console.warn("WebSocket connection aborted: Missing sessionCode or playerName");
       return;
     }
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+        console.warn("WebSocket is already open. Connection attempt aborted.");
+        return;
+      }
 
     const wsURL = `${WS_URL}/ws/session/${code}/?username=${username}`;
     console.log("Connecting to WebSocket:", wsURL);
@@ -52,7 +82,10 @@ export const WebSocketProvider = ({ children }) => {
       console.log("WebSocket connected");
       setIsConnected(true);
 
-      console.log("Setting session storage vars: sessionCode, playerName, isHost");
+      // Start ping/pong mechanism
+      startPing();
+
+      
       sessionStorage.setItem("sessionCode", code);
       sessionStorage.setItem("playerName", username);
       sessionStorage.setItem("isHost", isHostFlag ? "true" : "false");
@@ -68,47 +101,11 @@ export const WebSocketProvider = ({ children }) => {
     };
 
     socketRef.current.onclose = (event) => {
-        console.log(`WebSocket closed: Code ${event.code}, Reason: ${event.reason}`);
-      
-        /**
-        if (event.code === 1006) {
-          console.warn("Unexpected closure (1006). Attempting reconnection...");
-      
-          let retryCount = 0;
-          const maxRetries = 3;
-          const retryInterval = 3000;
-      
-          const attemptReconnection = () => {
-            if (retryCount >= maxRetries) {
-              console.warn("Max reconnection attempts reached. Session data is not cleared.");
-              return;
-            }
-      
-            // Always retrieve session data directly from sessionStorage
-            const storedSessionCode = sessionStorage.getItem("sessionCode");
-            const storedPlayerName = sessionStorage.getItem("playerName");
-            const storedIsHost = sessionStorage.getItem("isHost") === 'true';
-      
-            if (storedSessionCode && storedPlayerName) {
-              console.log(`Reconnecting attempt ${retryCount + 1} of ${maxRetries}...`);
-              connectWebSocket(storedSessionCode, storedPlayerName, storedIsHost);
-              retryCount++;
-            } else {
-              console.warn("Reconnection aborted: Missing session data.");
-            }
-          };
-      
-          // Reconnect every 3 seconds, up to 3 attempts
-          const reconnectionInterval = setInterval(() => {
-            if (isConnected) {
-              console.log("Reconnection successful.");
-              clearInterval(reconnectionInterval);
-            } else {
-              attemptReconnection();
-            }
-          }, retryInterval);
-        }
-          */
+        const timestamp = new Date().toISOString();
+        console.log(`[${timestamp}] WebSocket closed: Code ${event.code}, Reason: ${event.reason}`);
+
+        setIsConnected(false);
+        stopPing();
       };
       
 
@@ -125,6 +122,9 @@ export const WebSocketProvider = ({ children }) => {
     const { type } = data;
 
     switch (type) {
+      case "pong":
+        console.log("Received pong from server");
+        break;
       case "session_ended":
         handleSessionEnded();
         break;
