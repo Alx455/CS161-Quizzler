@@ -36,10 +36,10 @@ export const WebSocketProvider = ({ children }) => {
     stopPing();
   };
 
-   /**
-   * Start ping interval
-   */
-   const startPing = () => {
+  /**
+  * Start ping interval
+  */
+  const startPing = () => {
     stopPing();
 
     pingIntervalRef.current = setInterval(() => {
@@ -137,6 +137,12 @@ export const WebSocketProvider = ({ children }) => {
       case "game_started":
         handleGameStarted(data);
         break;
+        case "question_broadcast":
+          handleQuestionBroadcast(data);
+          break;
+        case "game_ended":
+          handleGameEnded(data);
+          break;
       default:
         console.warn("Unhandled WebSocket message type:", type);
     }
@@ -172,14 +178,14 @@ export const WebSocketProvider = ({ children }) => {
     });
   };
 
-    /**
+  /**
    * Handle game start
    */
-    const handleGameStarted = (data) => {
-      const { game_id } = data;
-      sessionStorage.setItem("gameId", game_id);
-      navigate(`/game/${sessionCode}`);
-    };
+  const handleGameStarted = (data) => {
+    const { game_id } = data;
+    sessionStorage.setItem("gameId", game_id);
+    navigate(`/game/${sessionCode}`);
+  };
 
   /**
    * Send message through WebSocket
@@ -190,6 +196,30 @@ export const WebSocketProvider = ({ children }) => {
     } else {
       console.warn("WebSocket is not open. Message not sent:", message);
     }
+  };
+
+  /**
+   * Handle question broadcast
+   */
+  const handleQuestionBroadcast = (data) => {
+    console.log("Question Broadcast Received:", data);
+    const { question_index, question_data } = data;
+
+    window.dispatchEvent(
+      new CustomEvent("questionBroadcast", { detail: { question_index, question_data } })
+    );
+  };
+
+  /**
+   * Handle game ended
+   */
+  const handleGameEnded = (data) => {
+    console.log("Game Ended:", data);
+    const { scores } = data;
+
+    window.dispatchEvent(
+      new CustomEvent("gameEnded", { detail: { scores } })
+    );
   };
 
   /**
