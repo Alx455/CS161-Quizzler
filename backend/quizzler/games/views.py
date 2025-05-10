@@ -163,14 +163,3 @@ class DeleteGameView(APIView):
         # Delete game from DB
         game.delete()
         return Response({'message': 'Game deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
-
-
-
-
-class RetrieveGameView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, game_id):
-        game = get_object_or_404(Game, id=game_id, owner=request.user)
-        serializer = FullGameSerializer(game)
-        return Response(serializer.data)

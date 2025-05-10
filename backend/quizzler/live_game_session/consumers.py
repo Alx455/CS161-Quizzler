@@ -245,6 +245,13 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
         }))
 
     async def game_started(self, event):
+        game_id = event.get("game_id")
+
+        if not game_id:
+            print("Error: `game_id` not provided in game_started event.")
+            return
+
         await self.send(text_data=json.dumps({
-            "type": "game_started"
+            "type": "game_started",
+            "game_id": game_id
         }))
