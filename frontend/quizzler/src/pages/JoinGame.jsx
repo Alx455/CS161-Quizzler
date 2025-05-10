@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
+import { useWebSocket } from "../context/WebSocketContext";
+
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -11,6 +13,8 @@ const JoinGame = () => {
   const [playerName, setPlayerName] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  const { connectWebSocket } = useWebSocket();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -46,6 +50,8 @@ const JoinGame = () => {
         setError(data.error || 'Failed to join game session');
         return;
       }
+
+      connectWebSocket(gamePin, playerName, false);
   
       sessionStorage.setItem('playerName', playerName);
       sessionStorage.setItem('playerId', data.player_id);
