@@ -7,7 +7,7 @@ import Button from '../components/ui/Button';
 const API_URL = import.meta.env.VITE_API_URL;
 
 const Results = () => {
-  const { id: sessionCode } = useParams();
+  const { sessionCode } = useParams();
   const [scores, setScores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,7 +15,7 @@ const Results = () => {
   useEffect(() => {
     const fetchScores = async () => {
       try {
-        const response = await fetch(`${API_URL}/final-scores/${sessionCode}/`);
+        const response = await fetch(`${API_URL}/live-game-session/final-scores/${sessionCode}/`);
 
         if (!response.ok) {
           throw new Error(`Error: ${response.statusText}`);
