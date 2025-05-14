@@ -317,14 +317,14 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
     async def send_question(self, session, game_id, question_index):
         try:
             # Fetch the question
-            game = await sync_to_async(lambda: session.game)()
-            questions = game.questions.all()
+            questions = await sync_to_async(list)(session.game.questions.all())
+
             if question_index >= len(questions):
                 logger.info(f"Invalid question index: {question_index}")
                 return
 
             question = questions[question_index]
-            choices = question.choices.all()
+            choices = await sync_to_async(list)(question.choices.all())
 
             logger.info(f"Broadcasting question 0 for game {game_id}")
 
