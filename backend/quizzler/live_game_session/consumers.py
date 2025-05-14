@@ -229,16 +229,16 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
                     await sync_to_async(session.save)()
                     await self.send_question(session, game_id, next_index)
                 else:
+                    players = await sync_to_async(lambda: list(session.player_set.all()))()
+                    scores = [{"username": player.username, "score": player.score} for player in players]
+
                     # End game if no more questions
                     await self.channel_layer.group_send(
                         self.room_group_name,
                         {
                             "type": "game_ended",
                             "message": "Game Over",
-                            "scores": [
-                                {"username": player.username, "score": player.score}
-                                for player in session.player_set.all()
-                            ]
+                            "scores": scores,
                         }
                     )
 

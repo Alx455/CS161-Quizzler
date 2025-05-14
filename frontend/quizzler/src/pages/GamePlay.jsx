@@ -1,5 +1,5 @@
 // src/pages/GamePlay.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import { useWebSocket } from "../context/WebSocketContext";
@@ -8,7 +8,7 @@ import { useWebSocket } from "../context/WebSocketContext";
 const API_URL = import.meta.env.VITE_API_URL;
 
 const GamePlay = () => {
-
+  const timerRef = useRef(null);
   const { id: sessionCode } = useParams();
   const storedGameId = sessionStorage.getItem("gameId");
 
@@ -88,24 +88,31 @@ const GamePlay = () => {
    * Handle Timer Logic
    */
   useEffect(() => {
-    if (timeRemaining <= 0) {
-      console.log("Top timer return executed");
-      return;
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
     }
-
-    const timer = setInterval(() => {
-      setTimeRemaining((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          console.log("Bottom timer return executed");
-          handleNextQuestion();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
+  
+    if (timeRemaining > 0) {
+      timerRef.current = setInterval(() => {
+        setTimeRemaining((prev) => {
+          if (prev <= 1) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+            console.log("Bottom timer return executed");
+            handleNextQuestion();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      console.log("Top timer return executed");
+    }
+  
+    return () => {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    };
   }, [timeRemaining]);
 
   /**
