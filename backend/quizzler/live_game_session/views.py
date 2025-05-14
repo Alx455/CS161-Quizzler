@@ -80,3 +80,19 @@ class JoinSessionView(APIView):
         player = Player.objects.create(session=session, username=username)
 
         return Response({'player_id': player.id})
+
+class GetFinalScoresView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, session_code):
+        try:
+            session = GameSession.objects.get(session_code=session_code)
+
+            # Retrieve all players ordered by their score in descending order
+            players = Player.objects.filter(session=session).order_by('-score')
+            scores = [{"username": player.username, "score": player.score} for player in players]
+
+            return Response({"scores": scores}, status=200)
+
+        except GameSession.DoesNotExist:
+            return Response({"error": "Session not found."}, status=404)
