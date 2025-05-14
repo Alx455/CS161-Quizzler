@@ -384,7 +384,15 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
             logger.info(f'Correctly retrieved game')
 
             # Retrieve the question
-            question = await sync_to_async(Question.objects.get)(game=game, index=question_index)
+            questions = await sync_to_async(lambda: list(game.questions.all()))()
+
+            # Ensure index is within bounds
+            if question_index < 0 or question_index >= len(questions):
+                logger.warning(f"Invalid question index: {question_index}")
+                return
+
+            # Retrieve the question by index
+            question = questions[question_index]
             logger.info(f'Correctly retrieved question')
 
             # Determine if the answer is correct
