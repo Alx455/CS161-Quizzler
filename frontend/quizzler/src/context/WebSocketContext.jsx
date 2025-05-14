@@ -202,8 +202,10 @@ export const WebSocketProvider = ({ children }) => {
    * Handle question broadcast
    */
   const handleQuestionBroadcast = (data) => {
-    console.log("Question Broadcast Received:", data);
+    console.log("Question Broadcast Received in Global WebSocketContext:", data);
     const { question_index, question_data } = data;
+
+    sessionStorage.setItem("pendingQuestion", JSON.stringify({ question_index, question_data }));
 
     window.dispatchEvent(
       new CustomEvent("questionBroadcast", { detail: { question_index, question_data } })

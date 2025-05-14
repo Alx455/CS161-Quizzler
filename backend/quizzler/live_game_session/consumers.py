@@ -169,7 +169,6 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
         elif message_type == 'item_use':
             await self.handle_item_use(data)
         elif message_type == "start_game":
-            logger.info(f"[RECEIVE START GAME] Received 'start_game' message in session {self.session_code}")
             # attempt to retrieve game session, return if fail
             try:
                 session = await sync_to_async(GameSession.objects.get)(session_code=self.session_code)
@@ -216,8 +215,8 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
         elif message_type == "next_question":
             try:
                 session = await sync_to_async(GameSession.objects.get)(session_code=self.session_code)
-                game = session.game
-                game_id = game.id
+                game = await sync_to_async(lambda: session.game)()
+                game_id = await sync_to_async(lambda: game.id)()
 
                 current_index = session.current_round
                 next_index = current_index + 1
