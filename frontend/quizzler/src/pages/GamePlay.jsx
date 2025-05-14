@@ -10,9 +10,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 const GamePlay = () => {
   const timerRef = useRef(null);
   const { id: sessionCode } = useParams();
-  const storedGameId = sessionStorage.getItem("gameId");
 
-  const [gameData, setGameData] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(0);
@@ -36,9 +34,10 @@ const GamePlay = () => {
 
       setCurrentQuestion(question_data);
       setQuestionIndex(question_index);
-      setTimeRemaining(30);  // Reset timer for each question
+      //setTimeRemaining(30);  // Reset timer for each question
       setIsAnswerSubmitted(false);
       setSelectedAnswer(null);
+      startTimer(30);
 
       console.log("Current Question Set:", question_data);
     };
@@ -57,8 +56,8 @@ const GamePlay = () => {
 
     const handleGameEnded = (e) => {
       console.log("Game Ended Event Received:", e.detail);
-      setScores(e.detail.scores);
-      navigate("/dashboard");  // Navigate back to dashboard or show game summary
+      //setScores(e.detail.scores);
+      //navigate("/dashboard");  // Navigate to game end screen
     };
 
     window.addEventListener("gameEnded", handleGameEnded);
@@ -85,8 +84,28 @@ const GamePlay = () => {
   };
 
   /**
-   * Handle Timer Logic
+   * Start Timer
    */
+  const startTimer = (duration) => {
+    clearInterval(timerRef.current);
+
+    let timeLeft = duration;
+    setTimeRemaining(timeLeft);
+
+    timerRef.current = setInterval(() => {
+      timeLeft--;
+      setTimeRemaining(timeLeft);
+
+      if (timeLeft <= 0) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+        console.log("Timer ended, moving to next question");
+        handleNextQuestion();
+      }
+    }, 1000);
+  };
+
+  /**
   useEffect(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -114,6 +133,7 @@ const GamePlay = () => {
       timerRef.current = null;
     };
   }, [timeRemaining]);
+  */
 
   /**
    * Handle Answer Selection
@@ -136,7 +156,7 @@ const GamePlay = () => {
         {/* Question Timer and Progress */}
         <div className="bg-white p-4 rounded-lg shadow-md mb-4 flex justify-between items-center">
           <div className="font-medium">
-            Question {questionIndex + 1} of {currentQuestion ? currentQuestion.choices.length : "Loading..."}
+            Question {questionIndex + 1} of {currentQuestion ? currentQuestion.choices.length - 1 : "Loading..."}
           </div>
           <div className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-medium">
             {timeRemaining} seconds
