@@ -383,7 +383,7 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
 
             # Determine if the answer is correct
             correct_choice = await sync_to_async(Choice.objects.get)(question=question, is_correct=True)
-            is_correct = correct_choice.choice_text == selected_answer
+            is_correct = await sync_to_async(lambda: correct_choice.choice_text == selected_answer)()
 
             # Retrieve the player
             try:
@@ -394,7 +394,7 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
 
             # Grant points if correct
             if is_correct:
-                player.score += 100
+                await sync_to_async(lambda: setattr(player, 'score', player.score + 100))()
                 await sync_to_async(player.save)()
 
             # Broadcast updated scores to all players
