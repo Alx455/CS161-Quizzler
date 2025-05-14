@@ -10,6 +10,7 @@ export const WebSocketProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [sessionCode, setSessionCode] = useState(null);
   const [playerName, setPlayerName] = useState(null);
+  const [scores, setScores] = useState([]);
   const [isHost, setIsHost] = useState(false);
 
   const navigate = useNavigate();
@@ -137,12 +138,15 @@ export const WebSocketProvider = ({ children }) => {
       case "game_started":
         handleGameStarted(data);
         break;
-        case "question_broadcast":
-          handleQuestionBroadcast(data);
-          break;
-        case "game_ended":
-          handleGameEnded(data);
-          break;
+      case "question_broadcast":
+        handleQuestionBroadcast(data);
+        break;
+      case "update_scores":
+        handleUpdateScores(data);
+        break;
+      case "game_ended":
+        handleGameEnded(data);
+        break;
       default:
         console.warn("Unhandled WebSocket message type:", type);
     }
@@ -213,6 +217,16 @@ export const WebSocketProvider = ({ children }) => {
   };
 
   /**
+   * Handle update scores
+   */
+  const handleUpdateScores = (data) => {
+    const { scores } = data;
+    console.log("Scores Updated:", scores);
+    setScores(scores);
+  };
+
+
+  /**
    * Handle game ended
    */
   const handleGameEnded = (data) => {
@@ -228,7 +242,7 @@ export const WebSocketProvider = ({ children }) => {
    * Context value
    */
   return (
-    <WebSocketContext.Provider value={{ connectWebSocket, sendMessage, disconnectWebSocket, players, isConnected, isHost }}>
+    <WebSocketContext.Provider value={{ connectWebSocket, sendMessage, disconnectWebSocket, players, isConnected, isHost, scores }}>
       {children}
     </WebSocketContext.Provider>
   );
