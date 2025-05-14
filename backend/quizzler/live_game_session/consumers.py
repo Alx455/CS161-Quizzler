@@ -221,8 +221,10 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
                 current_index = session.current_round
                 next_index = current_index + 1
 
+                question_count = await sync_to_async(lambda: game.questions.count())()
+
                 # Check if there are more questions
-                if next_index < game.questions.count():
+                if next_index < question_count:
                     session.current_round = next_index
                     await sync_to_async(session.save)()
                     await self.send_question(session, game_id, next_index)
