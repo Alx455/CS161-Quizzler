@@ -162,12 +162,14 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
         message_type = data.get('type')
+        print(f'Received: {message_type}')
 
         if message_type == 'chat_message':
             await self.handle_chat_message(data)
         elif message_type == 'item_use':
             await self.handle_item_use(data)
         elif message_type == "start_game":
+            print(f"[RECEIVE START GAME] Received 'start_game' message in session {self.session_code}")
             # attempt to retrieve game session, return if fail
             try:
                 session = await sync_to_async(GameSession.objects.get)(session_code=self.session_code)
