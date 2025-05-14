@@ -162,7 +162,7 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
         message_type = data.get('type')
-        print(f'Received: {message_type}')
+        print(f'[RECEIVE] Message received: {message_type} | Data: {data}')
 
         if message_type == 'chat_message':
             await self.handle_chat_message(data)
