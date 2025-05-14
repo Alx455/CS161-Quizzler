@@ -380,8 +380,11 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
             session = await sync_to_async(GameSession.objects.get)(session_code=session_code)
             logger.info(f'Correctly retrieved session')
 
+            game = await sync_to_async(lambda: session.game)()
+            logger.info(f'Correctly retrieved game')
+
             # Retrieve the question
-            question = await sync_to_async(Question.objects.get)(game=session.game, index=question_index)
+            question = await sync_to_async(Question.objects.get)(game=game, index=question_index)
             logger.info(f'Correctly retrieved question')
 
             # Determine if the answer is correct
