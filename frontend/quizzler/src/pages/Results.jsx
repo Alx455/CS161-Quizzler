@@ -84,7 +84,7 @@ const Results = () => {
             )}
             
             <div className="text-center">
-              <Link to="/">
+              <Link to="/dashboard">
                 <Button variant="primary">Back to Home</Button>
               </Link>
             </div>

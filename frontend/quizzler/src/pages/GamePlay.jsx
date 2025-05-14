@@ -140,7 +140,7 @@ const GamePlay = () => {
         {/* Question Timer and Progress */}
         <div className="bg-white p-4 rounded-lg shadow-md mb-4 flex justify-between items-center">
           <div className="font-medium">
-            Question {questionIndex + 1} of {currentQuestion ? currentQuestion.choices.length - 1 : "Loading..."}
+            Question {questionIndex + 1}
           </div>
           <div className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-medium">
             {timeRemaining} seconds
