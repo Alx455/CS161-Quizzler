@@ -168,12 +168,16 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
         elif message_type == 'item_use':
             await self.handle_item_use(data)
         elif message_type == "start_game":
+            # attempt to retrieve game session, return if fail
             try:
                 session = await sync_to_async(GameSession.objects.get)(session_code=self.session_code)
             except GameSession.DoesNotExist:
                 return
 
+            # Retrieve host username
             host_username = await sync_to_async(lambda: session.host.username)()
+
+            # Retrieve game ID(of the game associated with session, not the session code), return if fail
             try:
                 game_id = await sync_to_async(lambda: session.game.id)()
             except AttributeError:
@@ -183,15 +187,15 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
                 }))
                 return
 
+            # Only host can start the game
             if host_username != self.username:
-                # Only host can start the game
                 await self.send(text_data=json.dumps({
                     "type": "error",
                     "message": "Only the host can start the game."
                 }))
                 return
 
-            # Broadcast to all players that the game has started
+            # Broadcast to all players that the game has started and send game ID
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -319,6 +323,8 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
 
             question = questions[question_index]
             choices = question.choices.all()
+
+            print(f"Broadcasting question 0 for game {game_id}")
 
             # Broadcast question to all players
             await self.channel_layer.group_send(

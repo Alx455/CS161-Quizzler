@@ -1,6 +1,6 @@
 // src/pages/GamePlay.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -17,32 +17,9 @@ const GamePlay = () => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
 
-  /**
-   * Fetch game data on initial load
-   */
-  useEffect(() => {
-    const fetchGameData = async () => {
-      if (!storedGameId) return;
+  const navigate = useNavigate();
 
-      try {
-        const response = await fetch(`${API_URL}/games/${storedGameId}/retrieve/`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-          },
-        });
-        if (!response.ok) throw new Error("Failed to load game data");
 
-        const data = await response.json();
-        setGameData(data);
-        setCurrentQuestion(data.questions[0]);
-        setTimeRemaining(30);  // Default time limit per question
-      } catch (error) {
-        console.error("Error loading game data:", error);
-      }
-    };
-
-    fetchGameData();
-  }, [storedGameId]);
 
   /**
    * Listen for "questionBroadcast" and "gameEnded" events
