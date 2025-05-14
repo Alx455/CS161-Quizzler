@@ -55,8 +55,8 @@ const GamePlay = () => {
 
     const handleGameEnded = (e) => {
       console.log("Game Ended Event Received:", e.detail);
-      //setScores(e.detail.scores);
-      //navigate("/dashboard");  // Navigate to game end screen
+      const sessionCode = sessionStorage.getItem("sessionCode");
+      navigate(`/results/${sessionCode}`);  // Navigate to game end screen
     };
 
     window.addEventListener("gameEnded", handleGameEnded);

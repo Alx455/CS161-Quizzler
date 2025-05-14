@@ -378,10 +378,8 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
         try:
             # Retrieve the session
             session = await sync_to_async(GameSession.objects.get)(session_code=session_code)
-            logger.info(f'Correctly retrieved session')
 
             game = await sync_to_async(lambda: session.game)()
-            logger.info(f'Correctly retrieved game')
 
             # Retrieve the question
             questions = await sync_to_async(lambda: list(game.questions.all()))()
@@ -393,12 +391,10 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
 
             # Retrieve the question by index
             question = questions[question_index]
-            logger.info(f'Correctly retrieved question')
 
             # Determine if the answer is correct
             correct_choice = await sync_to_async(Choice.objects.get)(question=question, is_correct=True)
             is_correct = await sync_to_async(lambda: correct_choice.choice_text == selected_answer)()
-            logger.info(f'Correctly retrieced correct choice and set is correct')
 
             # Retrieve the player
             try:
@@ -412,13 +408,10 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
                 await sync_to_async(lambda: setattr(player, 'score', player.score + 100))()
                 await sync_to_async(player.save)()
 
-            logger.info(f'Correctly granted points')
-
             # Broadcast updated scores to all players
             scores = await sync_to_async(list)(
                 Player.objects.filter(session=session).values("username", "score")
             )
-            logger.info(f'Correctly boradcasted updated scores to all players')
 
             await self.channel_layer.group_send(
                 self.room_group_name,
