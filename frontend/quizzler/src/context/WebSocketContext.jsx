@@ -144,6 +144,9 @@ export const WebSocketProvider = ({ children }) => {
       case "update_scores":
         handleUpdateScores(data);
         break;
+      case "chat_message":
+        handleChatMessage(data);
+        break;
       case "game_ended":
         handleGameEnded(data);
         break;
@@ -223,6 +226,13 @@ export const WebSocketProvider = ({ children }) => {
     const { scores } = data;
     console.log("Scores Updated:", scores);
     setScores(scores);
+  };
+
+  /**
+   * Handle chat message
+   */
+  const handleChatMessage = (data) => {
+    window.dispatchEvent(new CustomEvent("chatMessage", { detail: data }));
   };
 
 

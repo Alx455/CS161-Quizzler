@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
+import ChatBox from '../components/layout/ChatBox';
 import { useWebSocket } from "../context/WebSocketContext";
 
 
@@ -184,6 +185,7 @@ const GamePlay = () => {
             Time's up! The correct answer will be revealed soon.
           </div>
         )}
+        <ChatBox />
       </div>
     </Layout>
   );
