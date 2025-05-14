@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
+import { useWebSocket } from "../context/WebSocketContext";
+
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -17,6 +19,7 @@ const GamePlay = () => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
 
+  const { sendMessage, isConnected } = useWebSocket();
   const navigate = useNavigate();
 
 
@@ -25,6 +28,8 @@ const GamePlay = () => {
    * Listen for "questionBroadcast" and "gameEnded" events
    */
   useEffect(() => {
+    console.log("GamePlay.jsx useEffect mounted for questionBroadcast listener");
+
     const handleQuestionBroadcast = (e) => {
       const { question_index, question_data } = e.detail;
       console.log("Received Question:", question_data);
@@ -34,7 +39,21 @@ const GamePlay = () => {
       setTimeRemaining(30);  // Reset timer for each question
       setIsAnswerSubmitted(false);
       setSelectedAnswer(null);
+
+      console.log("Current Question Set:", question_data);
     };
+
+    window.addEventListener("questionBroadcast", handleQuestionBroadcast);
+
+    // Check for any pending question in sessionStorage
+    const pendingQuestion = sessionStorage.getItem("pendingQuestion");
+    if (pendingQuestion) {
+      const { question_index, question_data } = JSON.parse(pendingQuestion);
+      handleQuestionBroadcast({ detail: { question_index, question_data } });
+      sessionStorage.removeItem("pendingQuestion");
+    }
+
+
 
     const handleGameEnded = (e) => {
       console.log("Game Ended Event Received:", e.detail);
@@ -42,7 +61,6 @@ const GamePlay = () => {
       navigate("/dashboard");  // Navigate back to dashboard or show game summary
     };
 
-    window.addEventListener("questionBroadcast", handleQuestionBroadcast);
     window.addEventListener("gameEnded", handleGameEnded);
 
     return () => {
@@ -52,15 +70,34 @@ const GamePlay = () => {
   }, [navigate]);
 
   /**
+   * Handle Moving to Next Question
+   */
+  const handleNextQuestion = () => {
+    console.log("Handling next question...");
+    
+    // Send "next_question" message through WebSocket
+    const sessionCode = sessionStorage.getItem("sessionCode");
+    if (sessionCode && isConnected) {
+      const message = { type: "next_question" };
+      sendMessage(message);
+      console.log("Sent next_question message to backend:", message);
+    }
+  };
+
+  /**
    * Handle Timer Logic
    */
   useEffect(() => {
-    if (timeRemaining <= 0) return;
+    if (timeRemaining <= 0) {
+      console.log("Top timer return executed");
+      return;
+    }
 
     const timer = setInterval(() => {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
+          console.log("Bottom timer return executed");
           handleNextQuestion();
           return 0;
         }
@@ -92,7 +129,7 @@ const GamePlay = () => {
         {/* Question Timer and Progress */}
         <div className="bg-white p-4 rounded-lg shadow-md mb-4 flex justify-between items-center">
           <div className="font-medium">
-            Question {questionIndex + 1} of {gameData ? gameData.questions.length : "Loading..."}
+            Question {questionIndex + 1} of {currentQuestion ? currentQuestion.choices.length : "Loading..."}
           </div>
           <div className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-medium">
             {timeRemaining} seconds
