@@ -22,4 +22,5 @@ class Player(models.Model):
     session = models.ForeignKey(GameSession, on_delete=models.CASCADE)
     username = models.CharField(max_length=50, validators=[MinLengthValidator(1), MaxLengthValidator(50)])
     score = models.IntegerField(default=0)
+    shield_active = models.BooleanField(default=False)    
 
