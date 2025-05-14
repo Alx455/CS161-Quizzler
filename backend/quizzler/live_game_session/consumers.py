@@ -162,14 +162,14 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
         message_type = data.get('type')
-        print(f'[RECEIVE] Message received: {message_type} | Data: {data}')
+        logger.info(f'[RECEIVE] Message received: {message_type} | Data: {data}')
 
         if message_type == 'chat_message':
             await self.handle_chat_message(data)
         elif message_type == 'item_use':
             await self.handle_item_use(data)
         elif message_type == "start_game":
-            print(f"[RECEIVE START GAME] Received 'start_game' message in session {self.session_code}")
+            logger.info(f"[RECEIVE START GAME] Received 'start_game' message in session {self.session_code}")
             # attempt to retrieve game session, return if fail
             try:
                 session = await sync_to_async(GameSession.objects.get)(session_code=self.session_code)
@@ -306,7 +306,7 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
         game_id = event.get("game_id")
 
         if not game_id:
-            print("Error: `game_id` not provided in game_started event.")
+            logger.info("Error: `game_id` not provided in game_started event.")
             return
 
         await self.send(text_data=json.dumps({
@@ -320,13 +320,13 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
             game = await sync_to_async(lambda: session.game)()
             questions = game.questions.all()
             if question_index >= len(questions):
-                print(f"Invalid question index: {question_index}")
+                logger.info(f"Invalid question index: {question_index}")
                 return
 
             question = questions[question_index]
             choices = question.choices.all()
 
-            print(f"Broadcasting question 0 for game {game_id}")
+            logger.info(f"Broadcasting question 0 for game {game_id}")
 
             # Broadcast question to all players
             await self.channel_layer.group_send(
@@ -345,7 +345,7 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
             )
 
         except Exception as e:
-            print(f"Error in sending question: {e}")
+            logger.info(f"Error in sending question: {e}")
 
 
     async def question_broadcast(self, event):
