@@ -17,7 +17,7 @@ const GamePlay = () => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
 
-  const { sendMessage, isConnected } = useWebSocket();
+  const { sendMessage, isConnected, disconnectWebSocket } = useWebSocket();
   const navigate = useNavigate();
 
 
@@ -55,8 +55,9 @@ const GamePlay = () => {
 
     const handleGameEnded = (e) => {
       console.log("Game Ended Event Received:", e.detail);
-      //setScores(e.detail.scores);
-      //navigate("/dashboard");  // Navigate to game end screen
+      const sessionCode = sessionStorage.getItem("sessionCode");
+      disconnectWebSocket();
+      navigate(`/results/${sessionCode}`);  // Navigate to game end screen
     };
 
     window.addEventListener("gameEnded", handleGameEnded);
