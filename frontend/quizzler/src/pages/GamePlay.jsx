@@ -34,7 +34,6 @@ const GamePlay = () => {
 
       setCurrentQuestion(question_data);
       setQuestionIndex(question_index);
-      //setTimeRemaining(30);  // Reset timer for each question
       setIsAnswerSubmitted(false);
       setSelectedAnswer(null);
       startTimer(30);
@@ -106,36 +105,6 @@ const GamePlay = () => {
   };
 
   /**
-  useEffect(() => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-  
-    if (timeRemaining > 0) {
-      timerRef.current = setInterval(() => {
-        setTimeRemaining((prev) => {
-          if (prev <= 1) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-            console.log("Bottom timer return executed");
-            handleNextQuestion();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      console.log("Top timer return executed");
-    }
-  
-    return () => {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    };
-  }, [timeRemaining]);
-  */
-
-  /**
    * Handle Answer Selection
    */
   const handleSelectAnswer = (answerId) => {
@@ -145,7 +114,20 @@ const GamePlay = () => {
     setIsAnswerSubmitted(true);
 
     console.log(`Answer submitted: ${answerId}`);
-    // TODO: Send answer to server via WebSocket
+    // Send the selected answer to the backend via WebSocket
+    const sessionCode = sessionStorage.getItem("sessionCode");
+
+    if (sessionCode && isConnected) {
+      const message = {
+        type: "answer_submission",
+        questionIndex: questionIndex,
+        selectedAnswer: answerId,
+        sessionCode: sessionCode,
+      };
+
+      sendMessage(message);
+      console.log("Sent answer_submission message to backend:", message);
+    }
   };
 
   return (

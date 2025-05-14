@@ -3,6 +3,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from urllib.parse import parse_qs
 from asgiref.sync import sync_to_async
 from live_game_session.models import GameSession, Player
+from games.models import Question, Choice
 import logging
 
 logger = logging.getLogger('quizzler.live_game_session.consumers')
@@ -248,6 +249,9 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
                     "message": "Session not found."
                 }))
 
+        elif message_type == 'answer_submission':
+            await self.handle_answer_submission(data)
+
         elif message_type == "ping":
             await self.send(text_data=json.dumps({"type": "pong"}))
             
@@ -361,4 +365,62 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
             "type": "game_ended",
             "message": event["message"],
             "scores": event.get("scores", [])
+        }))
+
+
+    async def handle_answer_submission(self, data):
+        question_index = data.get("questionIndex")
+        selected_answer = data.get("selectedAnswer")
+        session_code = data.get("sessionCode")
+        username = self.username
+
+        try:
+            # Retrieve the session
+            session = await sync_to_async(GameSession.objects.get)(session_code=session_code)
+
+            # Retrieve the question
+            question = await sync_to_async(Question.objects.get)(game=session.game, index=question_index)
+
+            # Determine if the answer is correct
+            correct_choice = await sync_to_async(Choice.objects.get)(question=question, is_correct=True)
+            is_correct = correct_choice.choice_text == selected_answer
+
+            # Retrieve the player
+            try:
+                player = await sync_to_async(Player.objects.get)(session=session, username=username)
+            except Player.DoesNotExist:
+                logger.warning(f"[ANSWER_SUBMISSION] Player {username} not found in session {session_code}")
+                return
+
+            # Grant points if correct
+            if is_correct:
+                player.score += 100
+                await sync_to_async(player.save)()
+
+            # Broadcast updated scores to all players
+            scores = await sync_to_async(list)(
+                Player.objects.filter(session=session).values("username", "score")
+            )
+
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "update_scores",
+                    "scores": scores
+                }
+            )
+
+        except GameSession.DoesNotExist:
+            logger.warning(f"[ANSWER_SUBMISSION] Session {session_code} not found.")
+        except Question.DoesNotExist:
+            logger.warning(f"[ANSWER_SUBMISSION] Question {question_index} not found.")
+        except Choice.DoesNotExist:
+            logger.warning(f"[ANSWER_SUBMISSION] Correct choice not found for question {question_index}.")
+        except Exception as e:
+            logger.error(f"[ANSWER_SUBMISSION] Error: {str(e)}")
+
+    async def update_scores(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "update_scores",
+            "scores": event["scores"]
         }))
