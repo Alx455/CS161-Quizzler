@@ -5,7 +5,7 @@ class ItemManager:
     MAX_ITEMS = 2
 
     # Updated Item Types
-    ITEM_TYPES = ["CANNON", "TORPEDO", "SHIELD"]
+    ITEM_TYPES = ["Cannon", "Torpedo", "Shield"]
     GRANT_ROUND_INTERVAL = 2
 
     def __init__(self):
