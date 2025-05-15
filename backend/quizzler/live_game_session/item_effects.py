@@ -1,5 +1,8 @@
 from .models import Player
 import random
+import logging
+
+logger = logging.getLogger('quizzler.live_game_session.item_effects')
 
 class ItemManager:
     MAX_ITEMS = 2
@@ -30,6 +33,7 @@ class ItemManager:
         """
         Queues item effects except for SHIELD, which is applied immediately.
         """
+        logger.info("use_item entered in item_efects.py")
         if item_type in self.player_items.get(player_id, []):
             self.player_items[player_id].remove(item_type)
 
@@ -46,6 +50,7 @@ class ItemManager:
         """
         Apply all queued items at the end of the round and reset shields.
         """
+        logger.info("apply_queued_items entered in item_efects.py")
         while self.item_queue:
             item_data = self.item_queue.pop(0)
             self.apply_effect(
@@ -61,6 +66,7 @@ class ItemManager:
         """
         Applies the effect of the item.
         """
+        logger.info(f'apply_effect entered in item_efects.py, {player_id} hits {target_id} with {item_type}')
         if item_type == "CANNON":
             self.apply_cannon(player_id, target_id)
         elif item_type == "TORPEDO":
@@ -70,6 +76,7 @@ class ItemManager:
         """
         Applies the CANNON effect: 75-point deduction.
         """
+        logger.info(f'apply_cannon entered in item_efects.py, {player_id} againts {target_id}')
         try:
             target_player = Player.objects.get(id=target_id)
 
@@ -113,6 +120,7 @@ class ItemManager:
             pass
 
     def grant_items(self, session):
+        logger.info("grant_items entered in item_efects.py")
         """
         Grants 1 item to all players in the session every 3 rounds, 
         but only if they have less than 2 items.
