@@ -241,11 +241,11 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
 
                 # Apply item effects before moving to next question
                 if item_manager:
-                    item_manager.apply_queued_items()
+                    await sync_to_async(item_manager.apply_queued_items)()
 
                 # Grant items based on the new round index
                 if item_manager:
-                    item_manager.grant_items(session)
+                    await sync_to_async(item_manager.grant_items)(session)
 
                 # Check if there are more questions
                 if next_index < question_count:
@@ -347,7 +347,7 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
                     return
 
             # Use the item
-            item_manager.use_item(player_id, item_type, target_id)
+            await sync_to_async(item_manager.use_item)(player_id, item_type, target_id)
             logger.info(f"[ITEM_USE] {item_type} used by {username} targeting {target_player_username}")
 
             # Broadcast the action to all players
@@ -521,6 +521,35 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
             "player_id": event["player_id"],
             "target_id": event["target_id"],
         }))
+
+    async def send_player_items(self):
+        item_manager = self.get_item_manager()
+
+        if not item_manager:
+            logger.warning(f"[ITEMS] No ItemManager found for session {self.session_code}.")
+            return
+
+        # Retrieve all players in the session
+        session = await sync_to_async(GameSession.objects.get)(session_code=self.session_code)
+        players = await sync_to_async(list)(
+            Player.objects.filter(session=session).values("id", "username")
+        )
+
+        # Construct items payload
+        player_items = {
+            player["id"]: item_manager.player_items.get(player["id"], [])
+            for player in players
+        }
+
+        # Broadcast items to all clients
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                "type": "player_items",
+                "items": player_items
+            }
+        )
+
 
     def get_item_manager(self):
         return session_item_managers.get(self.session_code)
