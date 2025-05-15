@@ -44,6 +44,7 @@ const GamePlay = () => {
    */
   useEffect(() => {
     const handleItemUsed = (e) => {
+      console.log("itemUsed event received:", e.detail);
       const { item_type, player_id, target_id } = e.detail;
       const currentPlayerName = sessionStorage.getItem("playerName");
   
@@ -84,8 +85,10 @@ const GamePlay = () => {
    * Transfer pending notifications to main notifications array at end of question
    */
   useEffect(() => {
+    console.log("Checking pending notifications at timer end:", pendingNotifications);
     if (timeRemaining === 0) {
       if (pendingNotifications.length > 0) {
+        console.log("Transferring pending notifications to main notifications...");
         pendingNotifications.forEach((notif) => {
           setNotifications((prev) => [...prev, notif]);
   
