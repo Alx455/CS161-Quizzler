@@ -360,11 +360,11 @@ const GamePlay = () => {
           <h3 className="font-bold mb-2">Item Usage</h3>
           <ul className="list-disc pl-4 space-y-1">
             <li>Each correct question: +100 pts</li>
-            <li>If your score didn't +100 after a correct answer, then that means someone attacked you!</li>
+            <li>If your score didn't +100 after a correct answer, it means someone attacked you!</li>
             <li>🎯 Cannon: Hit player above you, -75 pts</li>
             <li>🚀 Torpedo: Pick player, -50 pts</li>
             <li>🛡️ Shield: Block attacks for that round</li>
-            <li>🕒 Items every Q1, Q3, Q5...</li>
+            <li>🕒 Items spawned after a few rounds</li>
             <li>⌛ Effects after question ends</li>
           </ul>
         </div>
