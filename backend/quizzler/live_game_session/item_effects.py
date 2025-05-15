@@ -45,7 +45,7 @@ class ItemManager:
             logger.warning(f"Item {item_type} not found for player {player_id}. Current items: {self.player_items[player_id]}")
             return
         
-        
+
         if item_type in self.player_items.get(player_id, []):
             self.player_items[player_id].remove(item_type)
 
@@ -79,14 +79,14 @@ class ItemManager:
         Applies the effect of the item.
         """
         logger.info(f'apply_effect entered in item_efects.py, {player_id} hits {target_id} with {item_type}')
-        if item_type == "CANNON":
+        if item_type == "Cannon":
             self.apply_cannon(player_id, target_id)
-        elif item_type == "TORPEDO":
+        elif item_type == "Torpedo":
             self.apply_torpedo(player_id, target_id)
 
     def apply_cannon(self, player_id, target_id):
         """
-        Applies the CANNON effect: 75-point deduction.
+        Applies the Cannon effect: 75-point deduction.
         """
         logger.info(f'apply_cannon entered in item_efects.py, {player_id} againts {target_id}')
         try:
@@ -104,7 +104,7 @@ class ItemManager:
 
     def apply_torpedo(self, player_id, target_id):
         """
-        Applies the TORPEDO effect: 50-point deduction.
+        Applies the Torpedo effect: 50-point deduction.
         """
         try:
             target_player = Player.objects.get(id=target_id)

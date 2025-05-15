@@ -347,7 +347,7 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
 
             # Determine target player ID
             target_id = None
-            if item_type in ["CANNON", "TORPEDO"] and target_player_username:
+            if item_type in ["Cannon", "Torpedo"] and target_player_username:
                 try:
                     target_player = await sync_to_async(Player.objects.get)(session=session, username=target_player_username)
                     target_id = target_player.id
