@@ -91,7 +91,7 @@ const GamePlay = () => {
         message = `You used ${item_type}`;
       }
   
-      if (source_username === storedUsername && message) {
+      if (message) {
         setNotifications((prevNotifications) => [...prevNotifications, message]);
       }
     };
