@@ -13,8 +13,6 @@ const GamePlay = () => {
   const timerRef = useRef(null);
   const { sessionCode } = useParams();
 
-  const [items, setItems] = useState(["Cannon", "Shield"]);
-
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(0);
@@ -23,6 +21,12 @@ const GamePlay = () => {
 
   const { sendMessage, isConnected, disconnectWebSocket, scores, playerName, playerItems } = useWebSocket();
   const navigate = useNavigate();
+
+  //const [items, setItems] = useState(["Cannon", "Shield"]);
+
+  // Retrieve player items with player ID
+  const playerId = sessionStorage.getItem("playerId");
+  const items = playerItems[playerId] || [];
 
 
 
