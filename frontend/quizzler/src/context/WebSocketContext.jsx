@@ -154,6 +154,9 @@ export const WebSocketProvider = ({ children }) => {
       case "game_ended":
         handleGameEnded(data);
         break;
+      case "item_used":
+        handleItemUsed(data);
+        break;
       default:
         console.warn("Unhandled WebSocket message type:", type);
     }
@@ -264,6 +267,16 @@ export const WebSocketProvider = ({ children }) => {
     const { items } = data;
     console.log("Player Items Updated:", items);
     setPlayerItems(items);
+  };
+
+  /**
+   * Handle item used
+   */
+  const handleItemUsed = (data) => {
+    const { item_type, player_id, target_id } = data;
+    console.log(`Item Used: ${item_type}, Player: ${player_id}, Target: ${target_id}`);
+
+    // Here you can handle the effect of the item use, update player states, etc.
   };
 
 
