@@ -114,10 +114,13 @@ class ItemManager:
 
     def grant_items(self, session):
         """
-        Grants items to all players in the session every 3 rounds.
+        Grants 1 item to all players in the session every 3 rounds, 
+        but only if they have less than 2 items.
         """
         if session.current_round % self.GRANT_ROUND_INTERVAL == 0:
             players = Player.objects.filter(session=session)
             for player in players:
-                item_type = random.choice(self.ITEM_TYPES)
-                self.assign_item(player.id, item_type)
+                # Check if player has less than MAX_ITEMS
+                if len(self.player_items.get(player.id, [])) < self.MAX_ITEMS:
+                    item_type = random.choice(self.ITEM_TYPES)
+                    self.assign_item(player.id, item_type)
