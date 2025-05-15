@@ -5,9 +5,10 @@ from asgiref.sync import sync_to_async
 from live_game_session.models import GameSession, Player
 from games.models import Question, Choice
 import logging
+from .item_effects import ItemManager
 
 logger = logging.getLogger('quizzler.live_game_session.consumers')
-
+session_item_managers = {}
 
 
 
@@ -51,6 +52,11 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
             logger.warning(f"[CONNECT] Session {self.session_code} is inactive. Closing connection.")
             await self.close()
             return
+        
+        # Create a new ItemManager if it doesn't exist for the session
+        if self.session_code not in session_item_managers:
+            session_item_managers[self.session_code] = ItemManager()
+            logger.info(f"[CONNECT] New ItemManager created for session {self.session_code}")
 
         # Attempt to join group
         try:
@@ -157,6 +163,12 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             logger.error(f"[DISCONNECT] Error removing from group: {e}")
 
+        # Remove item_manager if group is empty
+        group_channels = self.channel_layer.groups.get(self.room_group_name, [])
+        if not group_channels:
+            logger.info(f"[DISCONNECT] No more players in session {self.session_code}. Removing ItemManager.")
+            session_item_managers.pop(self.session_code, None)
+
 
 
 
@@ -224,6 +236,17 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
 
                 question_count = await sync_to_async(lambda: game.questions.count())()
 
+                # Retrieve the correct ItemManager
+                item_manager = self.get_item_manager()
+
+                # Apply item effects before moving to next question
+                if item_manager:
+                    item_manager.apply_queued_items()
+
+                # Grant items based on the new round index
+                if item_manager:
+                    item_manager.grant_items(session)
+
                 # Check if there are more questions
                 if next_index < question_count:
                     session.current_round = next_index
@@ -289,8 +312,63 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
         )
 
     async def handle_item_use(self, data):
-        # Item use logic to be implemented later
-        pass
+        item_type = data.get("item")
+        target_player_username = data.get("targetPlayer")
+        session_code = data.get("sessionCode")
+        username = self.username
+
+        logger.info(f"[ITEM_USE] Item: {item_type}, Target: {target_player_username}, User: {username}")
+
+        try:
+            session = await sync_to_async(GameSession.objects.get)(session_code=session_code)
+            player = await sync_to_async(Player.objects.get)(session=session, username=username)
+            player_id = player.id
+
+            # Retrieve the correct ItemManager
+            item_manager = self.get_item_manager()
+
+            if not item_manager:
+                logger.warning(f"[ITEM_USE] No ItemManager found for session {session_code}.")
+                return
+
+            # Verify item in player's inventory
+            if item_type not in item_manager.player_items.get(player_id, []):
+                logger.warning(f"[ITEM_USE] Player {username} does not have the item {item_type}.")
+                return
+
+            # Determine target player ID
+            target_id = None
+            if item_type in ["CANNON", "TORPEDO"] and target_player_username:
+                try:
+                    target_player = await sync_to_async(Player.objects.get)(session=session, username=target_player_username)
+                    target_id = target_player.id
+                except Player.DoesNotExist:
+                    logger.warning(f"[ITEM_USE] Target player {target_player_username} not found.")
+                    return
+
+            # Use the item
+            item_manager.use_item(player_id, item_type, target_id)
+            logger.info(f"[ITEM_USE] {item_type} used by {username} targeting {target_player_username}")
+
+            # Broadcast the action to all players
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "item_used",
+                    "item_type": item_type,
+                    "player_id": player_id,
+                    "target_id": target_id,
+                }
+            )
+
+        except GameSession.DoesNotExist:
+            logger.warning(f"[ITEM_USE] Session {session_code} not found.")
+        except Player.DoesNotExist:
+            logger.warning(f"[ITEM_USE] Player {username} not found in session {session_code}.")
+        except Exception as e:
+            logger.error(f"[ITEM_USE] Error in handle_item_use: {str(e)}")
+
+
 
 
     async def chat_message(self, event):
@@ -435,3 +513,14 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
             "type": "update_scores",
             "scores": event["scores"]
         }))
+
+    async def item_used(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "item_used",
+            "item_type": event["item_type"],
+            "player_id": event["player_id"],
+            "target_id": event["target_id"],
+        }))
+
+    def get_item_manager(self):
+    return session_item_managers.get(self.session_code)

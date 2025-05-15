@@ -191,7 +191,10 @@ export const WebSocketProvider = ({ children }) => {
   const handleGameStarted = (data) => {
     const { game_id } = data;
     sessionStorage.setItem("gameId", game_id);
-    navigate(`/game/${sessionCode}`);
+
+    const storedSessionCode = sessionStorage.getItem("sessionCode");
+    console.log("Starting game with session code:", storedSessionCode);
+    navigate(`/game/${storedSessionCode}`);
   };
 
   /**
@@ -252,7 +255,7 @@ export const WebSocketProvider = ({ children }) => {
    * Context value
    */
   return (
-    <WebSocketContext.Provider value={{ connectWebSocket, sendMessage, disconnectWebSocket, players, isConnected, isHost, scores }}>
+    <WebSocketContext.Provider value={{ connectWebSocket, sendMessage, disconnectWebSocket, players, isConnected, isHost, scores, playerName }}>
       {children}
     </WebSocketContext.Provider>
   );

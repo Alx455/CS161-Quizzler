@@ -11,9 +11,9 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 const GamePlay = () => {
   const timerRef = useRef(null);
-  const { id: sessionCode } = useParams();
+  const { sessionCode } = useParams();
 
-  const [items, setItems] = useState(["Cannon", "Torpedo"]);
+  const [items, setItems] = useState(["Cannon", "Shield"]);
 
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -21,7 +21,7 @@ const GamePlay = () => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
 
-  const { sendMessage, isConnected, disconnectWebSocket } = useWebSocket();
+  const { sendMessage, isConnected, disconnectWebSocket, scores, playerName } = useWebSocket();
   const navigate = useNavigate();
 
 
@@ -141,6 +141,43 @@ const GamePlay = () => {
   const handleUseItem = (usedItem) => {
     console.log(`Item used: ${usedItem}`);
 
+    let targetPlayer = null;
+    console.log("Scores Array:", scores);
+    console.log("Current Player Name:", playerName);
+
+    // Determine target player based on the item
+    switch (usedItem) {
+      case "Shield":
+        targetPlayer = playerName;
+        break;
+
+      case "Cannon":
+        if (scores.length > 0) {
+          const sortedScores = [...scores].sort((a, b) => b.score - a.score);
+
+          const currentPlayerIndex = sortedScores.findIndex(player => player.username === playerName);
+          console.log("Current Player Index:", currentPlayerIndex);
+
+          if (currentPlayerIndex > 0) {
+            const targetIndex = currentPlayerIndex - 1;
+            console.log("Target Player index:", targetIndex);
+            targetPlayer = sortedScores[targetIndex].username; // Using name as target
+          } else {
+            console.log("no target player");
+            targetPlayer = null; // No target if in first place
+          }
+        }
+        break;
+
+      case "Torpedo":
+        targetPlayer = prompt("Select a player to target:"); // Simplified for demonstration
+        break;
+
+      default:
+        console.warn("Unknown item type:", usedItem);
+        return;
+    }
+
     // Send the item use event to the backend
     if (isConnected) {
       const sessionCode = sessionStorage.getItem("sessionCode");
@@ -148,7 +185,9 @@ const GamePlay = () => {
       const message = {
         type: "item_use",
         sessionCode,
+        user: playerName,
         item: usedItem,
+        target: targetPlayer,
       };
       sendMessage(message);
       console.log("WebSocket Message Sent:", message);
