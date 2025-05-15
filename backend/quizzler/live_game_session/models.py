@@ -12,7 +12,7 @@ def get_default_expiration():
 class GameSession(models.Model):
     host = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
-    session_code = models.CharField(max_length=6, unique=True, validators=[MinLengthValidator(6), MaxLengthValidator(6)])
+    session_code = models.CharField(max_length=6, unique=True, validators=[MinLengthValidator(6), MaxLengthValidator(6)], db_collation='utf8mb4_bin')
     is_active = models.BooleanField(default=True)
     current_round = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
