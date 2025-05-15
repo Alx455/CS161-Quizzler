@@ -198,7 +198,7 @@ const GamePlay = () => {
     }
 
     // Remove the used item from the items array
-    setItems((prevItems) => prevItems.filter((item) => item !== usedItem));
+    
   };
 
   return (

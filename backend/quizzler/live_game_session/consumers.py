@@ -362,6 +362,9 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
                 }
             )
 
+            # Send items to update frontend after an item is used(remove the item)
+            await self.send_player_items()
+
         except GameSession.DoesNotExist:
             logger.warning(f"[ITEM_USE] Session {session_code} not found.")
         except Player.DoesNotExist:
