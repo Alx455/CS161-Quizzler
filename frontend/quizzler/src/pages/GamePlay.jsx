@@ -22,6 +22,7 @@ const GamePlay = () => {
   const [showTargetModal, setShowTargetModal] = useState(false);
 
   const NOTIFICATION_TIMEOUT = 5000; // 5 seconds
+  const [notifications, setNotifications] = useState([]);
 
 
 
@@ -79,22 +80,20 @@ const GamePlay = () => {
       console.log(`Item Used: ${item_type}, Source: ${source_username}, Target: ${target_username}`);
       const storedUsername = sessionStorage.getItem("playerName");
   
-      let message = "";
-      let type = "info";
-  
+      let message = "";  
       if (source_username === storedUsername && target_username) {
         message = `You used ${item_type} on ${target_username}`;
       } 
       else if (target_username === storedUsername) {
         message = `${source_username} used ${item_type} on you!`;
-        type = "warning";
       } 
       else if (source_username === storedUsername && !target_username) {
         message = `You used ${item_type}`;
       }
   
       if (message) {
-        console.log(`Notification: ${message}`);
+        console.log("Adding message to pending notifications:", message)
+        setNotifications((prevNotifications) => [...prevNotifications, message]);
       }
     };
     window.addEventListener("itemUsed", handleItemUsed);
@@ -131,6 +130,16 @@ const GamePlay = () => {
   };
 
   /**
+   * Handle displaying item notifications
+   */
+  const handleDisplayNotifications = () => {
+    if (notifications.length > 0) {
+      setNotifications((prevNotifications) => prevNotifications.slice(1));
+    }
+  };
+
+
+  /**
    * Start Timer
    */
   const startTimer = (duration) => {
@@ -148,6 +157,7 @@ const GamePlay = () => {
         timerRef.current = null;
         console.log("Timer ended, moving to next question");
         handleNextQuestion();
+        handleDisplayNotifications();
       }
     }, 1000);
   };
@@ -311,6 +321,28 @@ const GamePlay = () => {
       {timeRemaining === 0 && !isAnswerSubmitted && (
         <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded text-center">
           Time's up! The correct answer will be revealed soon.
+        </div>
+      )}
+
+      {/* Notifications */}
+      {(timeRemaining === 0 || timeRemaining === 30 || timeRemaining === 29 || timeRemaining === 28) && (
+        <div className="fixed top-4 right-4 z-30 space-y-2">
+          {notifications.map((notification, index) => (
+            <div
+              key={index}
+              className={`bg-yellow-100 text-yellow-800 px-4 py-2 rounded shadow-md transition-opacity duration-1000 ease-out ${
+                notifications.length === 1 ? "opacity-0" : "opacity-100"
+              }`}
+              onTransitionEnd={() => {
+                if (notifications.length === 1) {
+                  console.log("Transition ended, clearing notifications...");
+                  setNotifications([]);  // Clear notifications after fade-out
+                }
+              }}
+            >
+              {notification}
+            </div>
+          ))}
         </div>
       )}
       
