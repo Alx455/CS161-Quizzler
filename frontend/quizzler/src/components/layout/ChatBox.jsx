@@ -33,8 +33,8 @@ const ChatBox = () => {
     };
   
     return (
-      <div className="fixed bottom-4 right-4 w-80 bg-white shadow-lg rounded-lg p-4 z-50">
-        <div className="h-48 overflow-y-scroll mb-2 border-b border-gray-300">
+      <div className="fixed bottom-16 right-4 w-80 bg-white shadow-lg rounded-lg p-4 z-50">
+        <div className="h-70 overflow-y-scroll mb-1 border-b border-gray-300">
           {messages.map((msg, index) => (
             <div key={index} className="text-sm mb-1">
               <strong>{msg.username}:</strong> {msg.message}

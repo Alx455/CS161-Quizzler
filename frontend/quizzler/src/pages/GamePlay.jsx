@@ -378,12 +378,23 @@ const GamePlay = () => {
       )}
       
       {/* ChatBox */}
-      <div className="fixed bottom-4 right-4 z-10">
+      <div className="fixed bottom-10 right-4 z-10">
         <ChatBox />
       </div>
-
+      
+      {/* Item Usage Description Box */}
+        <div className="fixed bottom-50 left-3 z-20 w-64 bg-white shadow-md rounded-lg p-4 text-sm leading-relaxed">
+          <h3 className="font-bold mb-2">Item Usage</h3>
+          <ul className="list-disc pl-4 space-y-1">
+            <li>🎯 Cannon: Hit above, -75 pts</li>
+            <li>🚀 Torpedo: Pick player, -50 pts</li>
+            <li>🛡️ Shield: Block attacks</li>
+            <li>🕒 Items every Q1, Q3, Q5...</li>
+            <li>⌛ Effects after question ends</li>
+          </ul>
+        </div>
       {/* ItemBox - Positioned above ChatBox */}
-      <div className="fixed bottom-75 right-20 z-20"> 
+      <div className="fixed bottom-16 left-7 z-20"> 
         <ItemBox items={items} onUseItem={handleUseItem} />
       </div>
 
