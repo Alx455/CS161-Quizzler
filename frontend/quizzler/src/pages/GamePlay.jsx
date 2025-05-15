@@ -22,6 +22,7 @@ const GamePlay = () => {
   const [showTargetModal, setShowTargetModal] = useState(false);
 
   const NOTIFICATION_TIMEOUT = 5000; // 5 seconds
+  const [pendingNotifications, setPendingNotifications] = useState([]);
   const [notifications, setNotifications] = useState([]);
 
 
@@ -92,7 +93,7 @@ const GamePlay = () => {
       }
   
       if (message) {
-        setNotifications((prevNotifications) => [...prevNotifications, message]);
+        setPendingNotifications((prevPendingNotifications) => [...prevPendingNotifications, message]);
       }
     };
     window.addEventListener("itemUsed", handleItemUsed);
@@ -128,6 +129,16 @@ const GamePlay = () => {
     }
   };
 
+
+  /**
+   * Transfer pending notifications to active notifications
+   */
+  const transferPendingNotifications = () => {
+    if (pendingNotifications.length > 0) {
+      setNotifications((prevNotifications) => [...prevNotifications, ...pendingNotifications]);
+      setPendingNotifications([]); // Clear pending notifications after transferring
+    }
+  };
   /**
    * Handle displaying item notifications
    */
@@ -160,6 +171,7 @@ const GamePlay = () => {
         timerRef.current = null;
         console.log("Timer ended, moving to next question");
         handleNextQuestion();
+        transferPendingNotifications();
         handleDisplayNotifications();
       }
     }, 1000);
