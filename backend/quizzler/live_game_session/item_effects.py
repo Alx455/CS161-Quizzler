@@ -6,7 +6,7 @@ class ItemManager:
 
     # Updated Item Types
     ITEM_TYPES = ["CANNON", "TORPEDO", "SHIELD"]
-    GRANT_ROUND_INTERVAL = 3
+    GRANT_ROUND_INTERVAL = 2
 
     def __init__(self):
         self.player_items = {}
