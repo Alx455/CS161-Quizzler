@@ -523,4 +523,4 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
         }))
 
     def get_item_manager(self):
-    return session_item_managers.get(self.session_code)
+        return session_item_managers.get(self.session_code)
