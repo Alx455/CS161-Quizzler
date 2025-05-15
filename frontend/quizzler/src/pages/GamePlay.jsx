@@ -22,6 +22,7 @@ const GamePlay = () => {
   const [showTargetModal, setShowTargetModal] = useState(false);
 
   const NOTIFICATION_TIMEOUT = 5000; // 5 seconds
+  const [notifications, setNotifications] = useState([]);
 
 
 
@@ -79,22 +80,19 @@ const GamePlay = () => {
       console.log(`Item Used: ${item_type}, Source: ${source_username}, Target: ${target_username}`);
       const storedUsername = sessionStorage.getItem("playerName");
   
-      let message = "";
-      let type = "info";
-  
+      let message = "";  
       if (source_username === storedUsername && target_username) {
         message = `You used ${item_type} on ${target_username}`;
       } 
       else if (target_username === storedUsername) {
         message = `${source_username} used ${item_type} on you!`;
-        type = "warning";
       } 
       else if (source_username === storedUsername && !target_username) {
         message = `You used ${item_type}`;
       }
   
-      if (message) {
-        console.log(`Notification: ${message}`);
+      if (source_username === storedUsername && message) {
+        setNotifications((prevNotifications) => [...prevNotifications, nmessage]);
       }
     };
     window.addEventListener("itemUsed", handleItemUsed);
@@ -131,6 +129,20 @@ const GamePlay = () => {
   };
 
   /**
+   * Handle displaying item notifications
+   */
+  const handleDisplayNotifications = () => {
+    if (notifications.length > 0) {
+      const timeout = setTimeout(() => {
+        setNotifications((prevNotifications) => prevNotifications.slice(1));
+      }, NOTIFICATION_TIMEOUT);
+  
+      return () => clearTimeout(timeout);
+    }
+  };
+
+
+  /**
    * Start Timer
    */
   const startTimer = (duration) => {
@@ -148,6 +160,7 @@ const GamePlay = () => {
         timerRef.current = null;
         console.log("Timer ended, moving to next question");
         handleNextQuestion();
+        handleDisplayNotifications();
       }
     }, 1000);
   };
@@ -313,6 +326,18 @@ const GamePlay = () => {
           Time's up! The correct answer will be revealed soon.
         </div>
       )}
+
+      {/* Notifications */}
+      <div className="fixed top-4 right-4 z-30 space-y-2">
+        {notifications.map((notification, index) => (
+          <div
+            key={index}
+            className="bg-blue-100 text-blue-800 px-4 py-2 rounded shadow-md"
+          >
+            {notification}
+          </div>
+        ))}
+      </div>
       
       {/* ChatBox */}
       <div className="fixed bottom-4 right-4 z-10">
