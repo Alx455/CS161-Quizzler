@@ -243,9 +243,10 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
                 if item_manager:
                     await sync_to_async(item_manager.apply_queued_items)()
 
-                # Grant items based on the new round index
+                # Grant items based on the new round index and send updated items to frontend
                 if item_manager:
                     await sync_to_async(item_manager.grant_items)(session)
+                    await self.send_player_items()
 
                 # Check if there are more questions
                 if next_index < question_count:
@@ -549,6 +550,35 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
                 "items": player_items
             }
         )
+
+    async def send_player_items(self):
+        item_manager = self.get_item_manager()
+
+        if not item_manager:
+            logger.warning(f"[ITEMS] No ItemManager found for session {self.session_code}.")
+            return
+
+        # Construct items payload
+        player_items = {
+            player_id: items
+            for player_id, items in item_manager.player_items.items()
+        }
+
+        # Broadcast items to all clients in the session
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                "type": "player_items",
+                "items": player_items
+            }
+        )
+
+    async def player_items(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "player_items",
+            "items": event["items"]
+        }))
+
 
 
     def get_item_manager(self):
