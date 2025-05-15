@@ -142,6 +142,8 @@ const GamePlay = () => {
     console.log(`Item used: ${usedItem}`);
 
     let targetPlayer = null;
+    console.log("Scores Array:", scores);
+    console.log("Current Player Name:", playerName);
 
     // Determine target player based on the item
     switch (usedItem) {
@@ -151,12 +153,15 @@ const GamePlay = () => {
 
       case "Cannon":
         if (scores.length > 0) {
-          const currentPlayerIndex = scores.findIndex(player => player.name === playerName);
+          const currentPlayerIndex = scores.findIndex(player => player.username === playerName);
+          console.log("Current Player Index:", currentPlayerIndex);
 
           if (currentPlayerIndex > 0) {
             const targetIndex = currentPlayerIndex - 1;
-            targetPlayer = scores[targetIndex].name;  // Using name as target
+            console.log("Target Player index:", targetIndex);
+            targetPlayer = scores[targetIndex].username;  // Using name as target
           } else {
+            console.log("no target player");
             targetPlayer = null; // No target if in first place
           }
         }
