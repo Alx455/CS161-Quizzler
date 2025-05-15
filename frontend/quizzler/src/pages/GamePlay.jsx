@@ -225,6 +225,11 @@ const GamePlay = () => {
     if (isConnected) {
       const sessionCode = sessionStorage.getItem("sessionCode");
 
+      console.log("Preparing to send item use message:");
+      console.log("Session Code:", sessionCode);
+      console.log("User:", playerName);
+      console.log("Item:", item);
+      console.log("Target:", target);
       const message = {
         type: "item_use",
         sessionCode,
