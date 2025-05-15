@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import ChatBox from '../components/layout/ChatBox';
 import ItemBox from '../components/layout/ItemBox';
+import SelectTargetModal from '../components/layout/SelectTargetModal';
 import { useWebSocket } from "../context/WebSocketContext";
 
 
@@ -18,6 +19,14 @@ const GamePlay = () => {
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
+  const [showTargetModal, setShowTargetModal] = useState(false);
+
+  const NOTIFICATION_TIMEOUT = 5000; // 5 seconds
+  const [notifications, setNotifications] = useState([]);
+  const [pendingNotifications, setPendingNotifications] = useState([]);
+
+
+
 
   const { sendMessage, isConnected, disconnectWebSocket, scores, playerName, playerItems } = useWebSocket();
   const navigate = useNavigate();
@@ -27,6 +36,88 @@ const GamePlay = () => {
   // Retrieve player items with player ID
   const playerId = sessionStorage.getItem("playerId");
   const items = playerItems[playerId] || [];
+
+
+  
+  /**
+   * Listen for "itemUsed" events and accumulate notifications
+   */
+  useEffect(() => {
+    const handleItemUsed = (e) => {
+      console.log("itemUsed event received:", e.detail);
+      const { item_type, player_id, target_id } = e.detail;
+      const currentPlayerName = sessionStorage.getItem("playerName");
+  
+      let message = "";
+      let type = "info";
+  
+      if (player_id === currentPlayerName && target_id) {
+        const targetPlayer = scores.find((player) => player.username === target_id);
+        message = `You used ${item_type} on ${targetPlayer?.username || "unknown player"}`;
+      } 
+      else if (target_id === currentPlayerName) {
+        const player = scores.find((player) => player.username === player_id);
+        message = `${player?.username || "Someone"} used ${item_type} on you!`;
+        type = "warning";
+      } 
+      else if (player_id === currentPlayerName && !target_id) {
+        message = `You used ${item_type}`;
+      }
+  
+      if (message) {
+        const notificationId = Date.now(); // Unique ID based on timestamp
+  
+        setPendingNotifications((prev) => [
+          ...prev,
+          { id: notificationId, message, type },
+        ]);
+      }
+    };
+  
+    window.addEventListener("itemUsed", handleItemUsed);
+  
+    return () => {
+      window.removeEventListener("itemUsed", handleItemUsed);
+    };
+  }, [scores]);
+  
+  /**
+   * Transfer pending notifications to main notifications array at end of question
+   */
+  useEffect(() => {
+    console.log("Checking pending notifications at timer end:", pendingNotifications);
+    if (timeRemaining === 0) {
+      if (pendingNotifications.length > 0) {
+        console.log("Transferring pending notifications to main notifications...");
+        pendingNotifications.forEach((notif) => {
+          setNotifications((prev) => [...prev, notif]);
+  
+          // Auto-clear after timeout
+          setTimeout(() => {
+            setNotifications((prev) =>
+              prev.filter((notification) => notification.id !== notif.id)
+            );
+          }, NOTIFICATION_TIMEOUT);
+        });
+  
+        setPendingNotifications([]); // Clear pending notifications
+      }
+    }
+  }, [timeRemaining, pendingNotifications]);
+  
+  /**
+   * Handle clearing notifications manually
+   */
+  const handleClearNotification = (notificationId) => {
+    setNotifications((prev) =>
+      prev.filter((notification) => notification.id !== notificationId)
+    );
+  };
+  
+
+
+
+  
 
 
 
@@ -145,11 +236,15 @@ const GamePlay = () => {
   const handleUseItem = (usedItem) => {
     console.log(`Item used: ${usedItem}`);
 
+    if (usedItem === "Torpedo") {
+      setShowTargetModal(true);
+      return;  // Do not proceed with WebSocket message yet
+    }
+
     let targetPlayer = null;
     console.log("Scores Array:", scores);
     console.log("Current Player Name:", playerName);
 
-    // Determine target player based on the item
     switch (usedItem) {
       case "Shield":
         targetPlayer = playerName;
@@ -158,23 +253,12 @@ const GamePlay = () => {
       case "Cannon":
         if (scores.length > 0) {
           const sortedScores = [...scores].sort((a, b) => b.score - a.score);
-
           const currentPlayerIndex = sortedScores.findIndex(player => player.username === playerName);
-          console.log("Current Player Index:", currentPlayerIndex);
 
           if (currentPlayerIndex > 0) {
-            const targetIndex = currentPlayerIndex - 1;
-            console.log("Target Player index:", targetIndex);
-            targetPlayer = sortedScores[targetIndex].username; // Using name as target
-          } else {
-            console.log("no target player");
-            targetPlayer = null; // No target if in first place
+            targetPlayer = sortedScores[currentPlayerIndex - 1].username;
           }
         }
-        break;
-
-      case "Torpedo":
-        targetPlayer = prompt("Select a player to target:"); // Simplified for demonstration
         break;
 
       default:
@@ -182,24 +266,44 @@ const GamePlay = () => {
         return;
     }
 
-    // Send the item use event to the backend
+    sendItemUseMessage(usedItem, targetPlayer);
+  };
+
+
+  /**
+   * Send WebSocket Message for Item Use
+   */
+  const sendItemUseMessage = (item, target) => {
     if (isConnected) {
       const sessionCode = sessionStorage.getItem("sessionCode");
-      //if (usedItem == "Torpedo") {// display a modal}
+
       const message = {
         type: "item_use",
         sessionCode,
         user: playerName,
-        item: usedItem,
-        target: targetPlayer,
+        item,
+        target,
       };
+
       sendMessage(message);
       console.log("WebSocket Message Sent:", message);
     }
-
-    // Remove the used item from the items array
-    
   };
+
+  /**
+   * Handle Target Selection for Torpedo
+   */
+  const handleSelectTarget = (targetPlayer) => {
+    setShowTargetModal(false);
+
+    if (targetPlayer) {
+      console.log(`Target selected for Torpedo: ${targetPlayer}`);
+      sendItemUseMessage("Torpedo", targetPlayer);
+    } else {
+      console.log("No target selected.");
+    }
+  };
+
 
   return (
     <Layout>
@@ -242,6 +346,24 @@ const GamePlay = () => {
         <p>Loading question...</p>
       )}
 
+      {/* Notifications */}
+      {notifications.length > 0 && (
+        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 p-4 rounded mb-4">
+          {notifications.map((notif) => (
+            <div key={notif.id} className="mb-2 flex justify-between">
+              <span>{notif.message}</span>
+              <button
+                className="text-red-600 font-bold ml-4"
+                onClick={() => handleClearNotification(notif.id)}
+              >
+                X
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+
       {/* Status Message */}
       {isAnswerSubmitted && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded text-center">
@@ -264,6 +386,15 @@ const GamePlay = () => {
       <div className="fixed bottom-75 right-20 z-20"> 
         <ItemBox items={items} onUseItem={handleUseItem} />
       </div>
+
+      {showTargetModal && (
+          <SelectTargetModal
+            players={scores}
+            currentPlayer={playerName}
+            onSelect={handleSelectTarget}
+            onClose={() => setShowTargetModal(false)}
+          />
+        )}
     </div>
   </Layout>
 );

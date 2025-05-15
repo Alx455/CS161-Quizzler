@@ -367,6 +367,8 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
                     "item_type": item_type,
                     "player_id": player_id,
                     "target_id": target_id,
+                    "source_username": player.username,
+                    "target_username": target_player.username if target_player else None,
                 }
             )
 
@@ -532,6 +534,8 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
             "item_type": event["item_type"],
             "player_id": event["player_id"],
             "target_id": event["target_id"],
+            "source_username": event["source_username"],
+            "target_username": event.get("target_username")
         }))
 
     async def send_player_items(self):

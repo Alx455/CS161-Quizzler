@@ -273,10 +273,20 @@ export const WebSocketProvider = ({ children }) => {
    * Handle item used
    */
   const handleItemUsed = (data) => {
-    const { item_type, player_id, target_id } = data;
-    console.log(`Item Used: ${item_type}, Player: ${player_id}, Target: ${target_id}`);
+    const { item_type, player_id, target_id, source_username, target_username } = data;
+    console.log(`Item Used: ${item_type}, Source: ${source_username}, Target: ${target_username}`);
 
-    // Here you can handle the effect of the item use, update player states, etc.
+    window.dispatchEvent(
+      new CustomEvent("itemUsed", {
+        detail: {
+          item_type,
+          player_id,
+          target_id,
+          source_username,
+          target_username,
+        },
+      })
+    );
   };
 
 
