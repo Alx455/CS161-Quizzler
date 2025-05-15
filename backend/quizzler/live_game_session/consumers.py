@@ -530,39 +530,13 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
             logger.warning(f"[ITEMS] No ItemManager found for session {self.session_code}.")
             return
 
-        # Retrieve all players in the session
-        session = await sync_to_async(GameSession.objects.get)(session_code=self.session_code)
-        players = await sync_to_async(list)(
-            Player.objects.filter(session=session).values("id", "username")
-        )
-
-        # Construct items payload
-        player_items = {
-            player["id"]: item_manager.player_items.get(player["id"], [])
-            for player in players
-        }
-
-        # Broadcast items to all clients
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                "type": "player_items",
-                "items": player_items
-            }
-        )
-
-    async def send_player_items(self):
-        item_manager = self.get_item_manager()
-
-        if not item_manager:
-            logger.warning(f"[ITEMS] No ItemManager found for session {self.session_code}.")
-            return
-
         # Construct items payload
         player_items = {
             player_id: items
             for player_id, items in item_manager.player_items.items()
         }
+
+        logger.info("Constructed items payload and broadcasting")
 
         # Broadcast items to all clients in the session
         await self.channel_layer.group_send(
