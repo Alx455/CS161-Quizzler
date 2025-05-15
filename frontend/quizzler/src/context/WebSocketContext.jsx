@@ -255,7 +255,7 @@ export const WebSocketProvider = ({ children }) => {
    * Context value
    */
   return (
-    <WebSocketContext.Provider value={{ connectWebSocket, sendMessage, disconnectWebSocket, players, isConnected, isHost, scores }}>
+    <WebSocketContext.Provider value={{ connectWebSocket, sendMessage, disconnectWebSocket, players, isConnected, isHost, scores, playerName }}>
       {children}
     </WebSocketContext.Provider>
   );

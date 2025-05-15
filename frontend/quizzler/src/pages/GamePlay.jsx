@@ -21,7 +21,7 @@ const GamePlay = () => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
 
-  const { sendMessage, isConnected, disconnectWebSocket, scores } = useWebSocket();
+  const { sendMessage, isConnected, disconnectWebSocket, scores, playerName } = useWebSocket();
   const navigate = useNavigate();
 
 
@@ -146,7 +146,7 @@ const GamePlay = () => {
     // Determine target player based on the item
     switch (usedItem) {
       case "Shield":
-        targetPlayer = "self";
+        targetPlayer = playerName;
         break;
 
       case "Cannon":
@@ -179,6 +179,7 @@ const GamePlay = () => {
         type: "item_use",
         sessionCode,
         item: usedItem,
+        targetPlayer,
       };
       sendMessage(message);
       console.log("WebSocket Message Sent:", message);
