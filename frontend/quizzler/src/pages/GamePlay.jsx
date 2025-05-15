@@ -283,6 +283,10 @@ const GamePlay = () => {
         </div>
       </div>
 
+      <div className="text-right mb-4 text-sm text-indigo-700 font-semibold">
+         Your Score: {scores.find(p => p.username === playerName)?.score ?? 0}
+      </div>
+
       {/* Question and Options */}
       {currentQuestion ? (
         <div className="bg-white p-6 rounded-lg shadow-md mb-6">
@@ -345,12 +349,25 @@ const GamePlay = () => {
 )}
       
       {/* ChatBox */}
-      <div className="fixed bottom-4 right-4 z-10">
+      <div className="fixed bottom-10 right-4 z-10">
         <ChatBox />
       </div>
-
+      
+      {/* Item Usage Description Box */}
+        <div className="fixed bottom-65 left-3 z-20 w-80 bg-white shadow-md rounded-lg p-4 text-sm leading-relaxed">
+          <h3 className="font-bold mb-2">Item Usage</h3>
+          <ul className="list-disc pl-4 space-y-1">
+            <li>Each correct question: +100 pts</li>
+            <li>If your score didn't +100 after a correct answer, it means someone attacked you!</li>
+            <li>🎯 Cannon: Hit player above you, -75 pts</li>
+            <li>🚀 Torpedo: Pick player, -50 pts</li>
+            <li>🛡️ Shield: Block attacks for that round</li>
+            <li>🕒 Items spawned after a few rounds</li>
+            <li>⌛ Effects after question ends</li>
+          </ul>
+        </div>
       {/* ItemBox - Positioned above ChatBox */}
-      <div className="fixed bottom-75 right-20 z-20"> 
+      <div className="fixed bottom-16 left-7 z-20"> 
         <ItemBox items={items} onUseItem={handleUseItem} />
       </div>
 
