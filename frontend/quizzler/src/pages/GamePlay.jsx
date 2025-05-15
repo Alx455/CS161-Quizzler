@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import ChatBox from '../components/layout/ChatBox';
+import ItemBox from '../components/layout/ItemBox';
 import { useWebSocket } from "../context/WebSocketContext";
 
 
@@ -11,6 +12,8 @@ const API_URL = import.meta.env.VITE_API_URL;
 const GamePlay = () => {
   const timerRef = useRef(null);
   const { id: sessionCode } = useParams();
+
+  const [items, setItems] = useState(["CANNON", "TORPEDO"]);
 
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -134,61 +137,70 @@ const GamePlay = () => {
 
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4">Game Play</h1>
+    <div className="max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Game Play</h1>
 
-        {/* Question Timer and Progress */}
-        <div className="bg-white p-4 rounded-lg shadow-md mb-4 flex justify-between items-center">
-          <div className="font-medium">
-            Question {questionIndex + 1}
-          </div>
-          <div className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-medium">
-            {timeRemaining} seconds
+      {/* Question Timer and Progress */}
+      <div className="bg-white p-4 rounded-lg shadow-md mb-4 flex justify-between items-center">
+        <div className="font-medium">
+          Question {questionIndex + 1}
+        </div>
+        <div className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-medium">
+          {timeRemaining} seconds
+        </div>
+      </div>
+
+      {/* Question and Options */}
+      {currentQuestion ? (
+        <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+          <h2 className="text-xl font-bold mb-6">{currentQuestion.question_text}</h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {currentQuestion.choices.map((choice, index) => (
+              <button
+                key={index}
+                onClick={() => handleSelectAnswer(choice.choice_text)}
+                className={`p-4 rounded-lg transition ${
+                  selectedAnswer === choice.choice_text
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-100 hover:bg-gray-200"
+                } ${isAnswerSubmitted ? "pointer-events-none" : ""}`}
+                disabled={isAnswerSubmitted}
+              >
+                {choice.choice_text}
+              </button>
+            ))}
           </div>
         </div>
+      ) : (
+        <p>Loading question...</p>
+      )}
 
-        {/* Question and Options */}
-        {currentQuestion ? (
-          <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-            <h2 className="text-xl font-bold mb-6">{currentQuestion.question_text}</h2>
+      {/* Status Message */}
+      {isAnswerSubmitted && (
+        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded text-center">
+          Answer submitted! Waiting for other players...
+        </div>
+      )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {currentQuestion.choices.map((choice, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleSelectAnswer(choice.choice_text)}
-                  className={`p-4 rounded-lg transition ${
-                    selectedAnswer === choice.choice_text
-                      ? "bg-indigo-600 text-white"
-                      : "bg-gray-100 hover:bg-gray-200"
-                  } ${isAnswerSubmitted ? "pointer-events-none" : ""}`}
-                  disabled={isAnswerSubmitted}
-                >
-                  {choice.choice_text}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <p>Loading question...</p>
-        )}
-
-        {/* Status Message */}
-        {isAnswerSubmitted && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded text-center">
-            Answer submitted! Waiting for other players...
-          </div>
-        )}
-
-        {timeRemaining === 0 && !isAnswerSubmitted && (
-          <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded text-center">
-            Time's up! The correct answer will be revealed soon.
-          </div>
-        )}
+      {timeRemaining === 0 && !isAnswerSubmitted && (
+        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded text-center">
+          Time's up! The correct answer will be revealed soon.
+        </div>
+      )}
+      
+      {/* ChatBox */}
+      <div className="fixed bottom-4 right-4 z-10">
         <ChatBox />
       </div>
-    </Layout>
-  );
+
+      {/* ItemBox - Positioned above ChatBox */}
+      <div className="fixed bottom-75 right-20 z-20"> 
+        <ItemBox items={items} />
+      </div>
+    </div>
+  </Layout>
+);
 };
 
 export default GamePlay;
