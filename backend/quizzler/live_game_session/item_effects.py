@@ -31,7 +31,7 @@ class ItemManager:
 
     def use_item(self, player_id, item_type, target_id=None):
         """
-        Queues item effects except for SHIELD, which is applied immediately.
+        Queues item effects except for Shield, which is applied immediately.
         """
         logger.info(f"use_item entered in item_effects.py with player_id: {player_id}, item_type: {item_type}, target_id: {target_id}")
         logger.info(f"Current player_items: {self.player_items}")
@@ -49,7 +49,7 @@ class ItemManager:
         if item_type in self.player_items.get(player_id, []):
             self.player_items[player_id].remove(item_type)
 
-            if item_type == "SHIELD":
+            if item_type == "Shield":
                 self.apply_shield(player_id)
             else:
                 self.item_queue.append({
