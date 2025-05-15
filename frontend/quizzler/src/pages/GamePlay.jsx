@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import ChatBox from '../components/layout/ChatBox';
 import ItemBox from '../components/layout/ItemBox';
+import SelectTargetModal from '../components/layout/SelectTargetModal';
 import { useWebSocket } from "../context/WebSocketContext";
 
 
@@ -18,6 +19,8 @@ const GamePlay = () => {
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
+  const [showTargetModal, setShowTargetModal] = useState(false);
+
 
   const { sendMessage, isConnected, disconnectWebSocket, scores, playerName, playerItems } = useWebSocket();
   const navigate = useNavigate();
@@ -145,11 +148,15 @@ const GamePlay = () => {
   const handleUseItem = (usedItem) => {
     console.log(`Item used: ${usedItem}`);
 
+    if (usedItem === "Torpedo") {
+      setShowTargetModal(true);
+      return;  // Do not proceed with WebSocket message yet
+    }
+
     let targetPlayer = null;
     console.log("Scores Array:", scores);
     console.log("Current Player Name:", playerName);
 
-    // Determine target player based on the item
     switch (usedItem) {
       case "Shield":
         targetPlayer = playerName;
@@ -158,23 +165,12 @@ const GamePlay = () => {
       case "Cannon":
         if (scores.length > 0) {
           const sortedScores = [...scores].sort((a, b) => b.score - a.score);
-
           const currentPlayerIndex = sortedScores.findIndex(player => player.username === playerName);
-          console.log("Current Player Index:", currentPlayerIndex);
 
           if (currentPlayerIndex > 0) {
-            const targetIndex = currentPlayerIndex - 1;
-            console.log("Target Player index:", targetIndex);
-            targetPlayer = sortedScores[targetIndex].username; // Using name as target
-          } else {
-            console.log("no target player");
-            targetPlayer = null; // No target if in first place
+            targetPlayer = sortedScores[currentPlayerIndex - 1].username;
           }
         }
-        break;
-
-      case "Torpedo":
-        targetPlayer = prompt("Select a player to target:"); // Simplified for demonstration
         break;
 
       default:
@@ -182,24 +178,44 @@ const GamePlay = () => {
         return;
     }
 
-    // Send the item use event to the backend
+    sendItemUseMessage(usedItem, targetPlayer);
+  };
+
+
+  /**
+   * Send WebSocket Message for Item Use
+   */
+  const sendItemUseMessage = (item, target) => {
     if (isConnected) {
       const sessionCode = sessionStorage.getItem("sessionCode");
-      //if (usedItem == "Torpedo") {// display a modal}
+
       const message = {
         type: "item_use",
         sessionCode,
         user: playerName,
-        item: usedItem,
-        target: targetPlayer,
+        item,
+        target,
       };
+
       sendMessage(message);
       console.log("WebSocket Message Sent:", message);
     }
-
-    // Remove the used item from the items array
-    
   };
+
+  /**
+   * Handle Target Selection for Torpedo
+   */
+  const handleSelectTarget = (targetPlayer) => {
+    setShowTargetModal(false);
+
+    if (targetPlayer) {
+      console.log(`Target selected for Torpedo: ${targetPlayer}`);
+      sendItemUseMessage("Torpedo", targetPlayer);
+    } else {
+      console.log("No target selected.");
+    }
+  };
+
 
   return (
     <Layout>
@@ -264,6 +280,15 @@ const GamePlay = () => {
       <div className="fixed bottom-75 right-20 z-20"> 
         <ItemBox items={items} onUseItem={handleUseItem} />
       </div>
+
+      {showTargetModal && (
+          <SelectTargetModal
+            players={scores}
+            currentPlayer={playerName}
+            onSelect={handleSelectTarget}
+            onClose={() => setShowTargetModal(false)}
+          />
+        )}
     </div>
   </Layout>
 );
