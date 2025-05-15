@@ -33,7 +33,19 @@ class ItemManager:
         """
         Queues item effects except for SHIELD, which is applied immediately.
         """
-        logger.info("use_item entered in item_efects.py")
+        logger.info(f"use_item entered in item_effects.py with player_id: {player_id}, item_type: {item_type}, target_id: {target_id}")
+        logger.info(f"Current player_items: {self.player_items}")
+
+        # Check if player exists in player_items and if the item is present
+        if player_id not in self.player_items:
+            logger.warning(f"Player {player_id} not found in player_items. Current state: {self.player_items}")
+            return
+
+        if item_type not in self.player_items[player_id]:
+            logger.warning(f"Item {item_type} not found for player {player_id}. Current items: {self.player_items[player_id]}")
+            return
+        
+        
         if item_type in self.player_items.get(player_id, []):
             self.player_items[player_id].remove(item_type)
 
