@@ -21,7 +21,10 @@ const GamePlay = () => {
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
   const [showTargetModal, setShowTargetModal] = useState(false);
 
+  const NOTIFICATION_TIMEOUT = 5000; // 5 seconds
   const [notifications, setNotifications] = useState([]);
+  const [pendingNotifications, setPendingNotifications] = useState([]);
+
 
 
 
@@ -35,57 +38,79 @@ const GamePlay = () => {
   const items = playerItems[playerId] || [];
 
 
-
-
-
-
+  
   /**
-   * Listen for "itemUsed" events
+   * Listen for "itemUsed" events and accumulate notifications
    */
   useEffect(() => {
     const handleItemUsed = (e) => {
       const { item_type, player_id, target_id } = e.detail;
-
-      // Determine the current player ID
-      const currentPlayerId = parseInt(sessionStorage.getItem("playerId"), 10);
-
+      const currentPlayerName = sessionStorage.getItem("playerName");
+  
       let message = "";
       let type = "info";
-
-      if (player_id === currentPlayerId && target_id) {
-        // This player used an item on another player
-        const targetPlayer = scores.find((player) => player.id === target_id);
-        message = `You used ${item_type} on ${targetPlayer?.username}`;
-      } else if (target_id === currentPlayerId) {
-        // This player is the target of an item
-        const player = scores.find((player) => player.id === player_id);
-        message = `${player?.username} used ${item_type} on you!`;
+  
+      if (player_id === currentPlayerName && target_id) {
+        const targetPlayer = scores.find((player) => player.username === target_id);
+        message = `You used ${item_type} on ${targetPlayer?.username || "unknown player"}`;
+      } 
+      else if (target_id === currentPlayerName) {
+        const player = scores.find((player) => player.username === player_id);
+        message = `${player?.username || "Someone"} used ${item_type} on you!`;
         type = "warning";
-      } else if (player_id === currentPlayerId && !target_id) {
-        // This player used a non-targeted item (e.g., Shield)
+      } 
+      else if (player_id === currentPlayerName && !target_id) {
         message = `You used ${item_type}`;
       }
-
+  
       if (message) {
-        setNotifications((prev) => [...prev, { message, type }]);
+        const notificationId = Date.now(); // Unique ID based on timestamp
+  
+        setPendingNotifications((prev) => [
+          ...prev,
+          { id: notificationId, message, type },
+        ]);
       }
     };
-
+  
     window.addEventListener("itemUsed", handleItemUsed);
-
+  
     return () => {
       window.removeEventListener("itemUsed", handleItemUsed);
     };
   }, [scores]);
-
+  
   /**
-   * Handle clearing notifications
+   * Transfer pending notifications to main notifications array at end of question
    */
-  const handleClearNotification = (index) => {
-    setNotifications((prev) => prev.filter((_, i) => i !== index));
+  useEffect(() => {
+    if (timeRemaining === 0) {
+      if (pendingNotifications.length > 0) {
+        pendingNotifications.forEach((notif) => {
+          setNotifications((prev) => [...prev, notif]);
+  
+          // Auto-clear after timeout
+          setTimeout(() => {
+            setNotifications((prev) =>
+              prev.filter((notification) => notification.id !== notif.id)
+            );
+          }, NOTIFICATION_TIMEOUT);
+        });
+  
+        setPendingNotifications([]); // Clear pending notifications
+      }
+    }
+  }, [timeRemaining, pendingNotifications]);
+  
+  /**
+   * Handle clearing notifications manually
+   */
+  const handleClearNotification = (notificationId) => {
+    setNotifications((prev) =>
+      prev.filter((notification) => notification.id !== notificationId)
+    );
   };
-
-
+  
 
 
 
@@ -320,20 +345,21 @@ const GamePlay = () => {
 
       {/* Notifications */}
       {notifications.length > 0 && (
-          <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 p-4 rounded mb-4">
-            {notifications.map((notif, index) => (
-              <div key={index} className="mb-2 flex justify-between">
-                <span>{notif.message}</span>
-                <button
-                  className="text-red-600 font-bold ml-4"
-                  onClick={() => handleClearNotification(index)}
-                >
-                  X
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 p-4 rounded mb-4">
+          {notifications.map((notif) => (
+            <div key={notif.id} className="mb-2 flex justify-between">
+              <span>{notif.message}</span>
+              <button
+                className="text-red-600 font-bold ml-4"
+                onClick={() => handleClearNotification(notif.id)}
+              >
+                X
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
 
       {/* Status Message */}
       {isAnswerSubmitted && (
