@@ -11,9 +11,9 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 const GamePlay = () => {
   const timerRef = useRef(null);
-  const { id: sessionCode } = useParams();
+  const { sessionCode } = useParams();
 
-  const [items, setItems] = useState(["Cannon", "Torpedo"]);
+  const [items, setItems] = useState(["Cannon", "Shield"]);
 
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -21,7 +21,7 @@ const GamePlay = () => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
 
-  const { sendMessage, isConnected, disconnectWebSocket } = useWebSocket();
+  const { sendMessage, isConnected, disconnectWebSocket, scores } = useWebSocket();
   const navigate = useNavigate();
 
 
@@ -140,6 +140,36 @@ const GamePlay = () => {
    */
   const handleUseItem = (usedItem) => {
     console.log(`Item used: ${usedItem}`);
+
+    let targetPlayer = null;
+
+    // Determine target player based on the item
+    switch (usedItem) {
+      case "Shield":
+        targetPlayer = "self";
+        break;
+
+      case "Cannon":
+        if (scores.length > 0) {
+          const currentPlayerIndex = scores.findIndex(player => player.name === playerName);
+
+          if (currentPlayerIndex > 0) {
+            const targetIndex = currentPlayerIndex - 1;
+            targetPlayer = scores[targetIndex].name;  // Using name as target
+          } else {
+            targetPlayer = null; // No target if in first place
+          }
+        }
+        break;
+
+      case "Torpedo":
+        targetPlayer = prompt("Select a player to target:"); // Simplified for demonstration
+        break;
+
+      default:
+        console.warn("Unknown item type:", usedItem);
+        return;
+    }
 
     // Send the item use event to the backend
     if (isConnected) {
