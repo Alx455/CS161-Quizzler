@@ -236,6 +236,16 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
 
                 question_count = await sync_to_async(lambda: game.questions.count())()
 
+                # Ensure only the host can trigger the next question
+                if self.username != host_username:
+                    logger.warning(f"[NEXT_QUESTION] Non-host {self.username} attempted to trigger next_question. Ignoring.")
+                    return
+
+                # Check if the round has already been processed
+                if hasattr(self, "last_processed_round") and self.last_processed_round == current_index:
+                    logger.warning(f"[NEXT_QUESTION] Round {current_index} already processed. Ignoring duplicate request.")
+                    return
+
                 # Retrieve the correct ItemManager
                 item_manager = self.get_item_manager()
 
