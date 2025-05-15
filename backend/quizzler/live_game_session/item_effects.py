@@ -68,15 +68,15 @@ class ItemManager:
 
     def apply_cannon(self, player_id, target_id):
         """
-        Applies the CANNON effect: 10-point deduction.
+        Applies the CANNON effect: 75-point deduction.
         """
         try:
             target_player = Player.objects.get(id=target_id)
 
             if not target_player.shield_active:
-                target_player.score -= 10
+                target_player.score -= 75
                 target_player.save()
-                print(f"Cannon hit {target_player.username} for -10 points")
+                print(f"Cannon hit {target_player.username} for -75 points")
             else:
                 print(f"Cannon blocked by shield on {target_player.username}")
 
@@ -85,15 +85,15 @@ class ItemManager:
 
     def apply_torpedo(self, player_id, target_id):
         """
-        Applies the TORPEDO effect: 15-point deduction.
+        Applies the TORPEDO effect: 50-point deduction.
         """
         try:
             target_player = Player.objects.get(id=target_id)
 
             if not target_player.shield_active:
-                target_player.score -= 15
+                target_player.score -= 50
                 target_player.save()
-                print(f"Torpedo hit {target_player.username} for -15 points")
+                print(f"Torpedo hit {target_player.username} for -50 points")
             else:
                 print(f"Torpedo blocked by shield on {target_player.username}")
 

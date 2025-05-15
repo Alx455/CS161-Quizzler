@@ -322,7 +322,7 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
 
     async def handle_item_use(self, data):
         item_type = data.get("item")
-        target_player_username = data.get("targetPlayer")
+        target_player_username = data.get("target")
         session_code = data.get("sessionCode")
         username = self.username
 
