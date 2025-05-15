@@ -22,7 +22,6 @@ const GamePlay = () => {
   const [showTargetModal, setShowTargetModal] = useState(false);
 
   const NOTIFICATION_TIMEOUT = 5000; // 5 seconds
-  const [pendingNotifications, setPendingNotifications] = useState([]);
   const [notifications, setNotifications] = useState([]);
 
 
@@ -93,7 +92,8 @@ const GamePlay = () => {
       }
   
       if (message) {
-        setPendingNotifications((prevPendingNotifications) => [...prevPendingNotifications, message]);
+        console.log("Adding message to pending notifications:", message)
+        setNotifications((prevNotifications) => [...prevNotifications, message]);
       }
     };
     window.addEventListener("itemUsed", handleItemUsed);
@@ -129,26 +129,12 @@ const GamePlay = () => {
     }
   };
 
-
-  /**
-   * Transfer pending notifications to active notifications
-   */
-  const transferPendingNotifications = () => {
-    if (pendingNotifications.length > 0) {
-      setNotifications((prevNotifications) => [...prevNotifications, ...pendingNotifications]);
-      setPendingNotifications([]); // Clear pending notifications after transferring
-    }
-  };
   /**
    * Handle displaying item notifications
    */
   const handleDisplayNotifications = () => {
     if (notifications.length > 0) {
-      const timeout = setTimeout(() => {
-        setNotifications((prevNotifications) => prevNotifications.slice(1));
-      }, NOTIFICATION_TIMEOUT);
-  
-      return () => clearTimeout(timeout);
+      setNotifications((prevNotifications) => prevNotifications.slice(1));
     }
   };
 
@@ -171,7 +157,6 @@ const GamePlay = () => {
         timerRef.current = null;
         console.log("Timer ended, moving to next question");
         handleNextQuestion();
-        transferPendingNotifications();
         handleDisplayNotifications();
       }
     }, 1000);
@@ -340,16 +325,26 @@ const GamePlay = () => {
       )}
 
       {/* Notifications */}
-      <div className="fixed top-4 right-4 z-30 space-y-2">
-        {notifications.map((notification, index) => (
-          <div
-            key={index}
-            className="bg-blue-100 text-blue-800 px-4 py-2 rounded shadow-md"
-          >
-            {notification}
-          </div>
-        ))}
-      </div>
+      {(timeRemaining === 0 || timeRemaining === 30 || timeRemaining === 29 || timeRemaining === 28) && (
+        <div className="fixed top-4 right-4 z-30 space-y-2">
+          {notifications.map((notification, index) => (
+            <div
+              key={index}
+              className={`bg-yellow-100 text-yellow-800 px-4 py-2 rounded shadow-md transition-opacity duration-1000 ease-out ${
+                notifications.length === 1 ? "opacity-0" : "opacity-100"
+              }`}
+              onTransitionEnd={() => {
+                if (notifications.length === 1) {
+                  console.log("Transition ended, clearing notifications...");
+                  setNotifications([]);  // Clear notifications after fade-out
+                }
+              }}
+            >
+              {notification}
+            </div>
+          ))}
+        </div>
+      )}
       
       {/* ChatBox */}
       <div className="fixed bottom-4 right-4 z-10">
