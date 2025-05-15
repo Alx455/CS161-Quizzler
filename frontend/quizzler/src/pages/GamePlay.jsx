@@ -21,8 +21,8 @@ const GamePlay = () => {
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
   const [showTargetModal, setShowTargetModal] = useState(false);
 
-  const NOTIFICATION_TIMEOUT = 5000; // 5 seconds
   const [notifications, setNotifications] = useState([]);
+
 
 
 
@@ -329,26 +329,24 @@ const GamePlay = () => {
       )}
 
       {/* Notifications */}
-      {(timeRemaining === 0 || timeRemaining === 30 || timeRemaining === 29 || timeRemaining === 28) && (
-        <div className="fixed top-4 right-4 z-30 space-y-2">
-          {notifications.map((notification, index) => (
-            <div
-              key={index}
-              className={`bg-yellow-100 text-yellow-800 px-4 py-2 rounded shadow-md transition-opacity duration-1000 ease-out ${
-                notifications.length === 1 ? "opacity-0" : "opacity-100"
-              }`}
-              onTransitionEnd={() => {
-                if (notifications.length === 1) {
-                  console.log("Transition ended, clearing notifications...");
-                  setNotifications([]);  // Clear notifications after fade-out
-                }
-              }}
-            >
-              {notification}
-            </div>
-          ))}
-        </div>
-      )}
+{(timeRemaining === 0 || (timeRemaining <= 30 && timeRemaining >= 26)) && (
+  <div className="fixed top-4 right-4 z-30 space-y-2">
+    {notifications.map((notification, index) => (
+      <div
+        key={index}
+        className={`bg-yellow-100 text-yellow-800 px-4 py-2 rounded shadow-md transition-opacity duration-1000 ease-out ${
+          timeRemaining <= 28 ? "opacity-0" : "opacity-100"
+        }`}
+        onTransitionEnd={() => {
+          console.log("Transition ended, clearing notifications...");
+          setNotifications([]);
+        }}
+      >
+        {notification}
+      </div>
+    ))}
+  </div>
+)}
       
       {/* ChatBox */}
       <div className="fixed bottom-10 right-4 z-10">
