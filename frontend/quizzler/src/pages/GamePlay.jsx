@@ -92,7 +92,7 @@ const GamePlay = () => {
       }
   
       if (source_username === storedUsername && message) {
-        setNotifications((prevNotifications) => [...prevNotifications, nmessage]);
+        setNotifications((prevNotifications) => [...prevNotifications, message]);
       }
     };
     window.addEventListener("itemUsed", handleItemUsed);
