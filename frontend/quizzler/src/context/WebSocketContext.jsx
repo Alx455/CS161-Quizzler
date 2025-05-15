@@ -7,6 +7,7 @@ export const WebSocketProvider = ({ children }) => {
   const socketRef = useRef(null);
   const pingIntervalRef = useRef(null);
   const [players, setPlayers] = useState([]);
+  const [playerItems, setPlayerItems] = useState({});
   const [isConnected, setIsConnected] = useState(false);
   const [sessionCode, setSessionCode] = useState(null);
   const [playerName, setPlayerName] = useState(null);
@@ -147,6 +148,9 @@ export const WebSocketProvider = ({ children }) => {
       case "chat_message":
         handleChatMessage(data);
         break;
+      case "player_items":
+        handlePlayerItems(data);
+        break;
       case "game_ended":
         handleGameEnded(data);
         break;
@@ -168,6 +172,14 @@ export const WebSocketProvider = ({ children }) => {
    * Handle player list
    */
   const handlePlayerList = (playersList) => {
+    const storedUsername = sessionStorage.getItem("playerName");
+
+    const player = playersList.find((p) => p.username === storedUsername);
+
+    if (player) {
+      sessionStorage.setItem("playerId", player.id);
+    }
+
     setPlayers(playersList.map((p) => ({
       id: p.id,
       name: p.username,
@@ -179,6 +191,13 @@ export const WebSocketProvider = ({ children }) => {
    */
   const handlePlayerJoined = (data) => {
     const { player_id, username } = data;
+    const storedUsername = sessionStorage.getItem("playerName");
+
+    // Set playerId if this is the current player
+    if (username === storedUsername) {
+      sessionStorage.setItem("playerId", player_id);
+    }
+
     setPlayers((prev) => {
       const exists = prev.some((p) => p.id === player_id);
       return exists ? prev : [...prev, { id: player_id, name: username }];
@@ -238,6 +257,15 @@ export const WebSocketProvider = ({ children }) => {
     window.dispatchEvent(new CustomEvent("chatMessage", { detail: data }));
   };
 
+  /**
+   * Handle player items
+   */
+  const handlePlayerItems = (data) => {
+    const { items } = data;
+    console.log("Player Items Updated:", items);
+    setPlayerItems(items);
+  };
+
 
   /**
    * Handle game ended
@@ -255,7 +283,7 @@ export const WebSocketProvider = ({ children }) => {
    * Context value
    */
   return (
-    <WebSocketContext.Provider value={{ connectWebSocket, sendMessage, disconnectWebSocket, players, isConnected, isHost, scores, playerName }}>
+    <WebSocketContext.Provider value={{ connectWebSocket, sendMessage, disconnectWebSocket, players, isConnected, isHost, scores, playerName, playerItems }}>
       {children}
     </WebSocketContext.Provider>
   );

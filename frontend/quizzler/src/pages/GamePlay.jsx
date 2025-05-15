@@ -21,7 +21,7 @@ const GamePlay = () => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
 
-  const { sendMessage, isConnected, disconnectWebSocket, scores, playerName } = useWebSocket();
+  const { sendMessage, isConnected, disconnectWebSocket, scores, playerName, playerItems } = useWebSocket();
   const navigate = useNavigate();
 
 
