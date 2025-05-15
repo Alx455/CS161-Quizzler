@@ -1,57 +1,84 @@
 .item-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 10px;
-    border: 2px solid #444;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    width: 200px;
-  }
-  
-  .item-container {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-  }
-  
-  .item {
-    width: 60px;
-    height: 60px;
-    background-color: #e0e0e0;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .item.selected {
-    background-color: #3747d4;
-  }
-  
-  .item-asset {
-    font-size: 1rem;
-  }
-  
-  .use-item-button {
-    width: 100%;
-    padding: 5px;
-    background-color: #888;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .use-item-button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-  }
-  
-  .use-item-button:not(:disabled):hover {
-    background-color: #555;
-  }
-  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  border: 2px solid #444;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  width: 220px;
+  position: relative;
+}
+
+.item-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.item {
+  width: 60px;
+  height: 60px;
+  background-color: #e0e0e0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.item.selected {
+  background-color: #3747d4;
+  transform: scale(1.1);
+}
+
+.item-asset {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+.use-item-button {
+  width: 100%;
+  padding: 6px;
+  background-color: #888;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.use-item-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.use-item-button:not(:disabled):hover {
+  background-color: #555;
+}
+
+/* Tooltip Styles */
+.tooltip {
+  position: absolute;
+  bottom: 70px;
+  background-color: #333;
+  color: #fff;
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.item:hover .tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}

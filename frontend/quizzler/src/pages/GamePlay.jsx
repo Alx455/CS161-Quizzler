@@ -13,7 +13,7 @@ const GamePlay = () => {
   const timerRef = useRef(null);
   const { id: sessionCode } = useParams();
 
-  const [items, setItems] = useState(["CANNON", "TORPEDO"]);
+  const [items, setItems] = useState(["Cannon", "Torpedo"]);
 
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -135,6 +135,29 @@ const GamePlay = () => {
     }
   };
 
+  /**
+   * Handle Item Use
+   */
+  const handleUseItem = (usedItem) => {
+    console.log(`Item used: ${usedItem}`);
+
+    // Send the item use event to the backend
+    if (isConnected) {
+      const sessionCode = sessionStorage.getItem("sessionCode");
+      //if (usedItem == "Torpedo") {// display a modal}
+      const message = {
+        type: "item_use",
+        sessionCode,
+        item: usedItem,
+      };
+      sendMessage(message);
+      console.log("WebSocket Message Sent:", message);
+    }
+
+    // Remove the used item from the items array
+    setItems((prevItems) => prevItems.filter((item) => item !== usedItem));
+  };
+
   return (
     <Layout>
     <div className="max-w-3xl mx-auto">
@@ -196,7 +219,7 @@ const GamePlay = () => {
 
       {/* ItemBox - Positioned above ChatBox */}
       <div className="fixed bottom-75 right-20 z-20"> 
-        <ItemBox items={items} />
+        <ItemBox items={items} onUseItem={handleUseItem} />
       </div>
     </div>
   </Layout>
