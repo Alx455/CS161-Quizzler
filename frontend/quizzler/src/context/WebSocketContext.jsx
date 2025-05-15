@@ -168,7 +168,7 @@ export const WebSocketProvider = ({ children }) => {
   const handleSessionEnded = () => {
     console.log("Session ended by host. Redirecting to dashboard...");
     clearSessionData();
-    //navigate("/dashboard");
+    navigate("/dashboard");
   };
 
   /**

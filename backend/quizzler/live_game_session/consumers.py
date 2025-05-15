@@ -569,6 +569,13 @@ class GameSessionConsumer(AsyncWebsocketConsumer):
             "items": event["items"]
         }))
 
+    async def game_session_ended(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "session_ended",
+            "message": event.get("message", "Session has ended. Redirecting to the dashboard.")
+        }))
+        await self.close()
+
 
 
     def get_item_manager(self):
